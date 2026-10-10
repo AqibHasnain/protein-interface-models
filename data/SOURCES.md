@@ -20,9 +20,8 @@ Assembled output is `data/processed/vdjdb_specs.jsonl`. All three sources were r
 | `mhc.a` parses as an HLA allele | 83886 |
 
 - Paired chains are required because the downstream complex has both TCRA and TCRB.
-- Rows are not deduplicated. VDJdb has one row per clonotype per study and donor, so
-  83761 specs contain 76525 distinct (role, sequence) identities. Deduplicate before
-  making train/test splits.
+- VDJdb has one row per clonotype per study and donor. Specs are deduplicated on
+  `ChainSpec.identity` after assembly (see "Assembled specs").
 - `vdjdb.score` (0-3) is kept in the loaded frame; 77133 of the 83886 rows have score 0.
 
 ## IPD-IMGT/HLA
@@ -39,8 +38,9 @@ Assembled output is `data/processed/vdjdb_specs.jsonl`. All three sources were r
   - Signal peptide is removed by cutting at the first `[GC]SHS[ML][RK]Y` match within the
     first 40 residues; no entry used by VDJdb needed the 24-residue fallback.
     The motif includes `K` at position 6 because C*01:02 and E alleles carry `MKY`/`LKY`.
-  - The MHC chain is the full mature protein, including the transmembrane and cytoplasmic
-    segments present in `hla_prot.fasta`; it is not trimmed to the ectodomain.
+  - The MHC chain is trimmed to the mature-chain residues set by `mhc_domains`: `a1a2`
+    (1-180, default), `ectodomain` (1-275) or `full` (no trim). Chains shorter than the cut
+    point are kept whole and logged as a warning; none occurred.
 - Rows dropped for unresolved alleles: 125 (`HLA-A*08:01` x65, `HLA-A*24:01` x59, `HLA-B*12` x1),
   which have no matching entry in release 3.65.0.
 
@@ -55,6 +55,13 @@ Assembled output is `data/processed/vdjdb_specs.jsonl`. All three sources were r
 
 ## Assembled specs
 
-- Result: 83761 ChainSpecs from 83886 filtered rows; 125 dropped as `unresolved_allele`,
-  none dropped for invalid residues.
+- Entrypoint: `python -m cla.data.assemble [--mhc-domains a1a2|ectodomain|full]`. The choice is
+  stored as `mhc_domains` on every record of the output.
+- 83761 ChainSpecs from 83886 filtered rows; 125 dropped as `unresolved_allele`, none for
+  invalid residues.
+- Deduplicated on `ChainSpec.identity`, keeping the highest `vdjdb.score` per group (earliest on
+  ties): 7237 collapsed, 76524 saved. One more than the 7236 exact-sequence duplicates in the
+  untrimmed data, because two alleles differing only past residue 180 become identical.
+- MHC chain after `a1a2` trimming: 180 residues for all 76524 specs.
+- Total residues per spec (sum over chains): min 305, median 317, max 332.
 - TCRA and TCRB chains are CDR3 loops only; VDJdb has no full-length chains.

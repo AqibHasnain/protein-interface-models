@@ -86,3 +86,79 @@ constant shift of all ids is a no-op and only cross-chain offsets bite, which is
 exactly the quantity H1 is about. And the Phase 2 module intervenes by supplying
 `position_ids`, with no monkeypatching of the backbone: that supported argument
 is what makes the fix genuinely drop-in.
+
+## 2026-10-10 - MHC trimmed to the alpha-1/alpha-2 groove; complexes deduplicated on identity
+
+The MHC heavy chain is cut to residues 1-180 of the mature chain, selectable through
+`mhc_domains` (`a1a2`, `ectodomain`, `full`) and recorded in the output file. Only
+the groove contacts the peptide and the TCR, and it is the usual truncation in pMHC sequence
+models. The full chain left too little headroom under 512 tokens for P2 and P4 to add tokens,
+and an audit whose perturbations silently truncate the MHC would measure truncation rather
+than position geometry.
+
+Alternative: keep the full chain and accept truncation or a longer limit. Rejected because the
+512-token budget is fixed for the audit, and the extra ~160 residues carry no peptide or TCR
+contacts.
+
+Specs are deduplicated on `ChainSpec.identity`, keeping the highest `vdjdb.score` in each
+group, before saving. Repeated complexes would weight every median toward whatever is
+replicated and violate the independence the bootstrap assumes, which would make the reported
+confidence intervals too narrow.
+
+Alternative: deduplicate downstream in the audit. Rejected because every consumer of the file
+would then have to remember to do it.
+
+## 2026-10-10 - The pre-registered NSI denominator is unresolvable on an untrained backbone
+
+A 60-example pilot at 35M showed the median span-pLL gap between VDJdb binders
+and mismatched decoys is about 0.0004 nats with token dropout on, and 0.019 with
+it off. NSI divides by that gap, so it came out between 90 and 860 with
+bootstrap intervals that do not bracket the point estimate. Those numbers are
+arithmetic noise, not evidence of layout sensitivity.
+
+The cause is not a bug. Zero-shot ESM-2 is not a binding predictor. It was never
+trained to score whether a receptor binds a peptide, and the plan's Phase 2 is
+what turns it into one. Phase 1 nonetheless has to audit the untrained baseline,
+so it needs a signal scale that exists before any training.
+
+**Decision.** Report two denominators, both labelled.
+
+1. The pre-registered NSI stays in the output and keeps its pre-registered gate
+   thresholds. Where the denominator is unresolved it is reported as not
+   computable, with the measured separation attached, rather than as a large
+   number. A metric that cannot be computed is not a result.
+
+2. **NSI-C**, the primary reportable for Phase 1, normalizes by the positive
+   control instead of by the binder/non-binder gap:
+
+   ```
+   NSI-C = median |sPLL(x) - sPLL(null_relayout(x))| / median |sPLL(x) - sPLL(P5(x))|
+   ```
+
+   P5 swaps in a genuinely different CDR3-beta of different length, so the
+   denominator is the score movement caused by a real biological change. NSI-C
+   asks directly: does writing the same complex down differently move the score
+   as much as making it a different complex? That is H1 restated without
+   reference to any trained discriminator, and P5 was already built to be
+   exactly this quantity. NSI-C >= 1.0 means the artifact is as large as the
+   biology.
+
+**Disclosure.** The NSI-C threshold of 0.25, carried over unchanged in form from
+the pre-registered NSI threshold, was fixed after the 60-example pilot had been
+seen. The pilot measured the denominator, not NSI-C, and the threshold was not
+tuned to produce any particular verdict, but it is not a blind pre-registration
+and the report must say so in those words.
+
+Alternative considered: obtain real validated non-binders from the Messemaker
+set and keep the original denominator. Rejected for Phase 1 because real
+negatives do not fix the actual problem. An untrained ESM-2 does not separate
+binders from non-binders regardless of how good the non-binders are, and the
+pilot's near-zero gap is a property of the model, not of the decoys.
+
+## 2026-10-10 - Zero-shot ESM-2 does not discriminate TCR-pMHC binding
+
+Recorded as a finding in its own right rather than as an obstacle. The span
+pseudo-log-likelihood of a peptide conditioned on a concatenated TCR and MHC
+context is near-identical for observed pairs and for mismatched decoys. Anyone
+building on a concatenation-based ESM-2 baseline without fine-tuning should know
+this before interpreting a score from it. It belongs in the audit write-up.

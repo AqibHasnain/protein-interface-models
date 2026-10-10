@@ -1,0 +1,16 @@
+# Present so the repo is ready to push, though it currently lives only locally.
+name: ci
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv venv --python 3.12
+      - run: uv pip install -e ".[dev]"
+      - run: .venv/bin/ruff check src tests
+      # The leakage test is the one that must never be allowed to go red.
+      - run: .venv/bin/pytest tests/test_splits.py -q
+      - run: .venv/bin/pytest tests -q --cov=src/cla --cov-report=term-missing

@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import pandas as pd
@@ -6,9 +7,11 @@ from cla.data.assemble import (
     MATURE_MOTIF,
     AlleleResolver,
     build_chainspecs,
+    dedupe_specs,
     load_specs,
     load_vdjdb,
     save_specs,
+    trim_mhc,
 )
 from cla.layout.spec import Role
 
@@ -69,6 +72,14 @@ def test_allele_variants_resolve_to_one_trimmed_entry(tmp_path):
     assert r.unresolved["HLA-B*99:99"] == 1
 
 
+def test_mhc_trim_domains_and_short_chain_warning(caplog):
+    seq = "A" * 300
+    assert [len(trim_mhc(seq, d)) for d in ("a1a2", "ectodomain", "full")] == [180, 275, 300]
+    with caplog.at_level("WARNING"):
+        assert trim_mhc("A" * 150, "a1a2", "A*99:01") == "A" * 150
+    assert "A*99:01" in caplog.text
+
+
 def test_assembly_order_and_drop_counts(tmp_path):
     df = load_vdjdb(_write_vdjdb(tmp_path))
     assert [n for _, n in df.attrs["filters"]] == [8, 7, 6, 5, 4, 4]
@@ -76,6 +87,12 @@ def test_assembly_order_and_drop_counts(tmp_path):
     specs, dropped = build_chainspecs(df, _resolver(tmp_path))
     assert dict(dropped) == {"invalid_tcra": 1, "unresolved_allele": 1}
     assert len(specs) == 2 and df["vdjdb.score"].tolist()[:2] == [3, 2]
+    # Both rows are the same complex; the higher-scoring row (index 0) is the one kept.
+    kept, collapsed = dedupe_specs(specs, {"vdjdb-0": 3, "vdjdb-1": 2})
+    assert collapsed == 1 and [s.example_id for s in kept] == ["vdjdb-0"]
+    kept, _ = dedupe_specs(specs, {"vdjdb-0": 1, "vdjdb-1": 2})
+    assert [s.example_id for s in kept] == ["vdjdb-1"]
+
     for s in specs:
         assert [c.role for c in s.chains] == [
             Role.TCRA,
@@ -87,5 +104,6 @@ def test_assembly_order_and_drop_counts(tmp_path):
         assert s.label == 1 and s.mhc_allele == "HLA-A*02:01"
 
     path = tmp_path / "specs.jsonl"
-    save_specs(specs, path)
+    save_specs(specs, path, "a1a2")
     assert load_specs(path) == specs
+    assert json.loads(path.read_text().splitlines()[0])["mhc_domains"] == "a1a2"
