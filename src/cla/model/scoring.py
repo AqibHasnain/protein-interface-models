@@ -13,6 +13,9 @@ Position handling in HuggingFace ESM-2 (transformers 5.x, `esm2_*` checkpoints h
 * `chain_ids` has no entry point in the model; it is carried on the rendered layout for
   downstream interventions and ignored here.
 
+Long spans are scored with `windowed_span_pll`, which masks a short window at a time so local
+context stays visible.
+
 Masked tokens are zeroed and embeddings rescaled when `config.token_dropout` is set (true for
 ESM-2). Masking a whole span therefore changes the rescaling factor for every token in the
 sequence, which is part of what `span_pll` measures.
@@ -20,6 +23,7 @@ sequence, which is part of what `span_pll` measures.
 
 from __future__ import annotations
 
+import sys
 from collections.abc import Iterable, Sequence
 from typing import Protocol
 
@@ -27,6 +31,11 @@ import numpy as np
 import torch
 from torch import nn
 from tqdm import tqdm
+
+
+def _quiet() -> bool:
+    """Progress bars repaint into log files, so they only show on a terminal."""
+    return not sys.stderr.isatty()
 
 
 class RenderedLike(Protocol):
@@ -104,6 +113,65 @@ def span_pll(
     return float(lp.mean())
 
 
+def _window_starts(n: int, window: int, stride: int, max_windows: int | None) -> list[int]:
+    """Start offsets of full-size windows over `n` span positions.
+
+    A final window is anchored to the span end when the stride would leave a tail uncovered.
+    A span shorter than `window` yields one window covering the whole span. When
+    `max_windows` truncates, windows are chosen evenly across the span so every region of
+    it stays represented, and the choice depends only on the span length.
+    """
+    if window < 1 or stride < 1:
+        raise ValueError("window and stride must be >= 1")
+    if max_windows is not None and max_windows < 1:
+        raise ValueError("max_windows must be >= 1")
+    last = max(n - window, 0)
+    starts = list(range(0, last + 1, stride))
+    if starts[-1] != last:
+        starts.append(last)
+    if max_windows is not None and len(starts) > max_windows:
+        keep = np.unique(np.round(np.linspace(0, len(starts) - 1, max_windows)).astype(int))
+        starts = [starts[i] for i in keep]
+    return starts
+
+
+def _window_jobs(
+    rendered: RenderedLike,
+    target_roles: Iterable[str],
+    window: int,
+    stride: int,
+    max_windows: int | None,
+) -> list[tuple[RenderedLike, torch.Tensor, torch.Tensor]]:
+    pos = target_positions(rendered, target_roles)
+    return [
+        (rendered, pos[s : s + window], pos[s : s + window])
+        for s in _window_starts(len(pos), window, stride, max_windows)
+    ]
+
+
+def windowed_span_pll(
+    model: nn.Module,
+    tokenizer,
+    rendered: RenderedLike,
+    target_roles: Iterable[str],
+    *,
+    window: int = 15,
+    stride: int = 15,
+    max_windows: int | None = None,
+    batch_size: int = 16,
+) -> float:
+    """Mask `window` contiguous target residues per forward, slide by `stride`, and average.
+
+    Masking a whole long span removes all local context, so the model predicts the true
+    residue worse than a uniform prior. A window keeps the rest of the span visible. Each
+    window contributes the mean true-token log-prob of its masked residues, and the result is
+    the mean over windows. All windows of one layout are batched, `batch_size` forwards at a time.
+    """
+    jobs = _window_jobs(rendered, target_roles, window, stride, max_windows)
+    lps = _masked_logprobs(model, tokenizer, jobs, batch_size=batch_size)
+    return float(np.mean([float(lp.mean()) for lp in lps]))
+
+
 def pll_pseudo(
     model: nn.Module,
     tokenizer,
@@ -132,25 +200,44 @@ def score_many(
     batch_size: int = 16,
     chunk: int = 32,
     desc: str = "scoring",
+    window: int = 15,
+    stride: int = 15,
+    max_windows: int | None = None,
 ) -> np.ndarray:
     """Score each rendered layout; returns a float64 array aligned with `rendereds`.
 
     `batch_size` is the number of layouts per forward pass for the span method. The pseudo
-    method already batches the L masked copies of one layout, `chunk` at a time.
+    method already batches the L masked copies of one layout, `chunk` at a time. The windowed
+    method flattens the windows of `batch_size` layouts into one job list, so the forward count
+    is layouts x windows but each forward is batched.
     """
     roles = list(target_roles)
     if method == "pseudo":
         return np.array(
             [
                 pll_pseudo(model, tokenizer, r, roles, chunk=chunk)
-                for r in tqdm(rendereds, desc=desc)
+                for r in tqdm(rendereds, desc=desc, disable=_quiet())
             ],
             dtype=np.float64,
         )
+    if method == "windowed":
+        out: list[float] = []
+        with tqdm(total=len(rendereds), desc=desc, disable=_quiet()) as bar:
+            for start in range(0, len(rendereds), batch_size):
+                group = rendereds[start : start + batch_size]
+                jobs = [_window_jobs(r, roles, window, stride, max_windows) for r in group]
+                flat = [j for per in jobs for j in per]
+                lps = _masked_logprobs(model, tokenizer, flat, batch_size=batch_size)
+                at = 0
+                for per in jobs:
+                    out.append(float(np.mean([float(lp.mean()) for lp in lps[at : at + len(per)]])))
+                    at += len(per)
+                bar.update(len(group))
+        return np.array(out, dtype=np.float64)
     if method != "span":
         raise ValueError(f"unknown method {method!r}")
     scores: list[float] = []
-    with tqdm(total=len(rendereds), desc=desc) as bar:
+    with tqdm(total=len(rendereds), desc=desc, disable=_quiet()) as bar:
         for start in range(0, len(rendereds), batch_size):
             group = rendereds[start : start + batch_size]
             jobs = []

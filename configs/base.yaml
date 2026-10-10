@@ -1,9 +1,12 @@
 seed: 0
 device: auto          # auto -> mps on this machine, else cpu
 max_length: 512
+# Baseline rendering for every operator: one separator between chains and between each end
+# chain and its special token, so no chain is adjacent to <cls> or <eos>.
 separator_tokens: 1
+symmetric_ends: true
 scoring:
-  estimator: span_pll   # span_pll | pll_pseudo
+  estimator: span_pll   # default; span_pll | windowed_span_pll | pll_pseudo
   targets: [[PEPTIDE]]
 data:
   specs: data/processed/vdjdb_specs.jsonl

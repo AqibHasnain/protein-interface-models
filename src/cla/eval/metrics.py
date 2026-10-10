@@ -110,6 +110,34 @@ def nsi_control(
     return float(np.median(np.abs(a - b)) / denom)
 
 
+def gsi(
+    original: object,
+    geometry: object,
+    control: object,
+    min_denominator: float = _MIN_DENOMINATOR,
+) -> float:
+    """Geometry Sensitivity Index.
+
+    ``median_i |s(x_i) - s(geo(x_i))| / median_i |s(x_i) - s(control(x_i))|``
+
+    The numerator is how far a content-free position change moves the score; the
+    denominator is how far real amino-acid substitutions move it. GSI >= 1.0 means the
+    geometry artifact exceeds that much real biology. All three arrays must hold the same
+    examples in the same order so a paired bootstrap resamples them on shared indices.
+
+    Raises
+    ------
+    ValueError
+        If the control's median shift is below ``min_denominator``.
+    """
+    a, g = _paired(original, geometry)
+    a, c = _paired(a, control)
+    denom = float(np.median(np.abs(a - c)))
+    if denom < min_denominator:
+        raise ValueError(f"median control shift {denom:.3g} is below {min_denominator:g}")
+    return float(np.median(np.abs(a - g)) / denom)
+
+
 def rank_stability(original: object, perturbed: object) -> dict[str, float]:
     """Spearman rho and Kendall tau (tau-b) between original and perturbed scores."""
     a, b = _paired(original, perturbed)

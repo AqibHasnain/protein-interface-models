@@ -2,11 +2,29 @@ extends: ../base.yaml
 run_name: audit-esm2-35m
 model: 35M
 n_examples: 1000
-operators: [P1, P2, P4, P5]
-separator_counts: [0, 1, 5, 25]
+# Content-coupled operators, reported separately from the geometry sweep.
+operators: [P1, P2, P4]
+separator_counts: [0, 5, 25]
 spacer_length: 25
+geometry:
+  operators: [G1, G2]
+  # Gap 0 is the inertness check. 150 keeps four chain breaks inside ESM-2's 1026 positions.
+  gaps: [0, 1, 2, 5, 10, 25, 50, 100, 150]
+  out_of_distribution: [400]
+controls:
+  c1_n_mutations: [5, 20]
+  gsi_denominator_n: 20
 bootstrap:
   n_boot: 10000
   alpha: 0.05
+headline_targets: [PEPTIDE, TCRB]
 scoring:
-  targets: [[PEPTIDE], [TCRB]]
+  targets: [[PEPTIDE], [TCRB], [MHC_HEAVY]]
+  estimators:
+    PEPTIDE: span_pll
+    TCRB: span_pll
+    MHC_HEAVY: windowed_span_pll
+  windowed:
+    window: 15
+    stride: 15
+    max_windows: 4

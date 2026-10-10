@@ -272,3 +272,45 @@ length `separator_tokens`, which is now 0 by default, so it removes the
 special-token adjacency confound only when at least one separator is rendered.
 P1 and its baseline are both rendered with one separator and symmetric ends, or
 the confound returns.
+
+## 2026-10-10 - Geometry sensitivity is graded for some target/operator pairs and a step for others
+
+Full sweep at 35M, n=1000, paired bootstrap CIs, token dropout on. GSI is the
+median absolute score shift divided by the shift from twenty real amino-acid
+substitutions in a context chain.
+
+G1 inserts the gap at every chain break; G2 inserts it only before the peptide.
+
+| Gap | PEPTIDE G1 | PEPTIDE G2 | TCRB G1 | MHC_HEAVY G1 |
+|---|---|---|---|---|
+| 0 | 0.00 | 0.00 | 0.00 | 0.00 |
+| 1 | 1.26 | 0.60 | 1.21 | 0.42 |
+| 2 | 1.35 | 0.94 | 1.17 | 0.57 |
+| 5 | 1.33 | 1.26 | 1.50 | 1.00 |
+| 10 | 1.09 | 1.63 | 1.45 | 1.20 |
+| 25 | 1.16 | 1.91 | 2.09 | 1.73 |
+| 50 | 1.20 | 2.04 | 2.46 | 2.16 |
+| 100 | 1.18 | 2.76 | 2.01 | 2.81 |
+| 150 | 1.17 | 3.32 | 3.64 | 3.63 |
+
+Gap 0 is exactly zero everywhere, which is the inertness check on the operator.
+
+**The answer is both, depending on where the gap goes.** A gap at every chain
+break saturates immediately for the peptide target: one index is worth as much
+as 150. A gap placed only before the peptide is graded and monotonic, reaching
+3.32 at gap 150. MHC_HEAVY under G1 is cleanly graded across the whole sweep.
+
+This matters for Phase 2. For the peptide target the chain-break offset is a
+step function, so the structure-model convention of a large constant (200) buys
+nothing over a small one, and the offset magnitude is not worth tuning. The
+graded cases say the opposite, so the ablation has to report the offset value as
+a swept parameter rather than a fixed 200.
+
+**The caveat that must travel with every one of these numbers.** The
+denominators are small: twenty real substitutions move the peptide score 0.043
+nats, TCRB 0.018, MHC_HEAVY 0.014. GSI exceeds 1.0 partly because zero-shot
+ESM-2 barely responds to real sequence change either. The honest claim is that
+layout noise is comparable to or larger than the biological signal in a model
+whose score is weakly driven by both, not that layout noise is large in
+absolute terms. Any version of this result that quotes GSI without the
+denominator is misleading, so the report prints raw nats beside every ratio.

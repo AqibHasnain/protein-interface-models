@@ -3,7 +3,13 @@ import json
 import numpy as np
 import pytest
 
-from cla.eval.audit import compute_metrics, evaluate_gate_g1, evaluate_gate_g1_nsi_c, run_audit
+from cla.eval.audit import (
+    compute_metrics,
+    dose_response_shape,
+    evaluate_gate_g1,
+    evaluate_gate_gsi_model,
+    run_audit,
+)
 from cla.eval.negatives import make_mismatched_negatives
 from cla.layout.spec import Chain, ChainSpec, Role
 
@@ -68,41 +74,82 @@ def test_audit_smoke_end_to_end(tmp_path):
         "model": "35M",
         "seed": 0,
         "n_examples": 8,
-        "operators": ["P1", "P5"],
+        "operators": ["P1"],
+        "geometry": {"operators": ["G1", "G2"], "gaps": [0, 5, 25], "out_of_distribution": [400]},
+        "controls": {"c1_n_mutations": [20], "gsi_denominator_n": 20},
         "bootstrap": {"n_boot": 50, "alpha": 0.05},
         "max_length": 512,
         "separator_tokens": 1,
-        "scoring": {"estimator": "span_pll", "targets": [["PEPTIDE"], ["TCRB"]]},
+        "symmetric_ends": True,
+        "scoring": {
+            "targets": [["PEPTIDE"], ["TCRB"]],
+            "estimators": {"PEPTIDE": "span_pll", "TCRB": "windowed_span_pll"},
+            "windowed": {"window": 5, "stride": 5, "max_windows": 2},
+        },
     }
     out = tmp_path / "res"
-    result = run_audit(
-        config, synthetic_specs(), out_dir=out, runs_root=tmp_path / "runs", device="cpu"
-    )
+    run_audit(config, synthetic_specs(), out_dir=out, runs_root=tmp_path / "runs", device="cpu")
     parsed = json.loads((out / "nsi.json").read_text())
+    assert parsed["baseline_rendering"] == {
+        "separator_tokens": 1,
+        "symmetric_ends": True,
+        "max_length": 512,
+    }
     assert parsed["data"]["n_scored"] == 16
-    assert set(parsed["targets"]) == {"PEPTIDE", "TCRB"}
-    assert set(parsed["discrimination"]) == {"PEPTIDE", "TCRB"}
+    assert parsed["scoring"]["estimators"]["TCRB"]["name"] == "windowed_span_pll"
     for t in parsed["targets"].values():
-        p1 = t["operators"]["P1"]["token_dropout"]
-        assert set(p1) == {"true", "false"}
-        assert all(p1[arm]["n_pairs"] == 16 for arm in p1)
-        assert all(p1[arm]["nsi_c"]["n_paired"] == 16 for arm in p1)
-        assert all(p1[arm]["nsi_c"]["value"] is not None for arm in p1)
-        assert t["operators"]["P5"]["token_dropout"]["true"]["nsi_c"]["value"] is None
+        geo = t["geometry"]
+        for op in ("G1", "G2"):
+            gaps = geo["per_operator"][op]["gaps"]
+            for arm in ("true", "false"):
+                assert gaps["0"][arm]["gsi"]["value"] == 0.0
+                assert gaps["25"][arm]["gsi"]["value"] > 0
+                assert gaps["25"][arm]["n_pairs"] == 8
+                e = gaps["25"][arm]
+                assert e["median_abs_delta"] / e["c1_denominator"] == pytest.approx(
+                    e["gsi"]["value"]
+                )
+            assert op in geo["out_of_distribution"]["per_operator"]
+        assert geo["inertness_check"]["passed"]
         assert t["discrimination"]["true"]["auroc"]["ci_lo"] is not None
-        assert t["p1_arm_agreement"]["available"]
-        assert t["gate_g1"]["nsi_c"]["verdict"] in {"PROCEED", "NOT_PROCEED", "UNDETERMINED"}
-        diff = t["token_dropout_control"]["median_abs_original_score_diff_on_vs_off"]
-        assert diff > 0
-    assert result["targets"]["TCRB"]["target_roles"] == ["TCRB"]
+        assert t["token_dropout_control"]["median_abs_original_score_diff_on_vs_off"] > 0
+    assert parsed["targets"]["TCRB"]["controls"]["C2"]["applicability"]["n_applied"] == 0
+    assert "gsi" in parsed["gate_g1"]
+    rows = (out / "summary.tsv").read_text().splitlines()
+    assert rows[0].split("\t")[:3] == ["target", "operator", "gap"]
+    assert len(rows) > 20
+
+
+def test_gsi_gate_needs_two_gaps_and_ci_floor():
+    def e(value, lo):
+        return {"value": value, "ci_lo": lo}
+
+    table = {
+        "PEPTIDE": {"G1": {"5": e(1.4, 0.7), "25": e(1.1, 0.4), "100": e(2.0, 0.6)}},
+        "MHC_HEAVY": {"G1": {"5": e(3.0, 2.0), "25": e(3.0, 2.0)}},
+    }
+    peptide_only = evaluate_gate_gsi_model(table, targets=["PEPTIDE"])
+    assert peptide_only["qualifying_gaps"] == [5, 100]
+    assert peptide_only["model_qualifies"]
+    assert evaluate_gate_gsi_model(table)["qualifying_gaps"] == [5, 25, 100]
+    one = evaluate_gate_gsi_model({"PEPTIDE": {"G1": {"5": e(1.4, 0.7), "25": e(0.9, 0.7)}}})
+    assert not one["model_qualifies"]
+
+
+def test_dose_response_distinguishes_step_from_graded():
+    rng = np.random.default_rng(0)
+    orig = np.zeros(400)
+    idx = np.arange(400)
+    noise = rng.uniform(0.9, 1.1, 400)
+    boot = {"n_boot": 200, "alpha": 0.05}
+    step = {g: (idx, 0.1 * noise) for g in (1, 2, 5, 25, 100)}
+    graded = {g: (idx, 0.01 * g**0.6 * noise) for g in (1, 2, 5, 25, 100)}
+    assert dose_response_shape(orig, step, boot=boot, seed=0)["shape"] == "step"
+    assert dose_response_shape(orig, graded, boot=boot, seed=0)["shape"] == "graded"
 
 
 def _m(nsi, rho=0.5, delta=0.0):
     return {"nsi": nsi, "spearman_rho": rho, "delta_auroc": delta}
-
-
-def _c(nsi_c, rho=0.5):
-    return {"nsi_c": nsi_c, "spearman_rho": rho}
 
 
 @pytest.mark.parametrize(
@@ -122,21 +169,6 @@ def _c(nsi_c, rho=0.5):
 )
 def test_gate_g1_verdicts(metrics, verdict):
     assert evaluate_gate_g1(metrics)["verdict"] == verdict
-
-
-@pytest.mark.parametrize(
-    ("metrics", "verdict"),
-    [
-        ({"P1": _c(0.4), "P2": _c(0.3), "P4": _c(0.05)}, "PROCEED"),
-        # High rank correlation fails an operator even with NSI-C above threshold.
-        ({"P1": _c(0.4, 0.95), "P2": _c(0.3, 0.97), "P4": _c(0.05)}, "NOT_PROCEED"),
-        # P5 is the denominator and never counts as a null operator.
-        ({"P1": _c(0.1), "P2": _c(0.1), "P4": _c(0.1), "P5": _c(5.0)}, "NOT_PROCEED"),
-        ({"P1": _c(0.4), "P2": _c(None), "P4": _c(0.05)}, "UNDETERMINED"),
-    ],
-)
-def test_gate_g1_nsi_c_verdicts(metrics, verdict):
-    assert evaluate_gate_g1_nsi_c(metrics)["verdict"] == verdict
 
 
 def test_nsi_withheld_when_binder_decoy_gap_is_unresolved():

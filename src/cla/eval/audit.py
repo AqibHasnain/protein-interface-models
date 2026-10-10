@@ -2,15 +2,25 @@
 
     python -m cla.eval.audit --config configs/audit/esm2_35m.yaml [--limit N] [--device cpu|mps]
 
-Each example is scored once in its original layout, then again after every relayout
-operator, under two token-dropout arms (see docs/DECISIONS.md). Scores are the span
-log-likelihood of a target role set given the rest of the complex; every entry of
-`scoring.targets` is audited separately and reported under `targets`.
+Each example is scored once in its baseline layout, then again after every operator, under
+two token-dropout arms (see docs/DECISIONS.md). Scores are the span log-likelihood of a
+target role set given the rest of the complex; every entry of `scoring.targets` is audited
+separately and reported under `targets`, each with the estimator configured for it.
 
-NSI-C (normalized by the P5 positive control) is the primary metric. The pre-registered NSI
-divides by the binder/decoy gap, which is unresolvable for an untrained backbone, so it is
-reported as null when that gap is below `NSI_MIN_STANDARDIZED_SEPARATION` (in score SDs).
-Decoys are mismatched pairings from `cla.eval.negatives`.
+The primary metric is the Geometry Sensitivity Index,
+
+    GSI = median |s(x) - s(geo(x))| / median |s(x) - s(C1(x, n=20))|
+
+where `geo` is a pure-geometry operator (G1, G2: only `position_ids` change) and C1 mutates
+20 residues of the context chains. It measures how far a content-free position change moves
+the score relative to twenty real amino-acid substitutions. Geometry operators and controls
+run on the positive examples only; the content-coupled operators P1, P2, P4 run on positives
+and decoys so the pre-registered binder/decoy quantities stay computable.
+
+The pre-registered NSI divides by the binder/decoy gap, which is unresolvable for an
+untrained backbone, so it is reported as null when that gap is below
+`NSI_MIN_STANDARDIZED_SEPARATION` (in score SDs). Decoys are mismatched pairings from
+`cla.eval.negatives`. A metric that cannot be computed is null with a reason.
 """
 
 from __future__ import annotations
@@ -19,7 +29,9 @@ import argparse
 import contextlib
 import functools
 import json
+import math
 import sys
+import time
 from collections import Counter
 from dataclasses import asdict
 from pathlib import Path
@@ -33,14 +45,15 @@ from cla.eval.metrics import (
     auroc,
     bootstrap_ci,
     decision_flip_rate,
+    gsi,
     length_stratified_nsi,
     nsi,
-    nsi_control,
     rank_stability,
 )
 from cla.eval.negatives import make_mismatched_negatives
-from cla.layout.concat import render_naive
-from cla.layout.perturb import OPERATORS, OperatorNotApplicable
+from cla.layout.concat import RenderedLayout, render_naive
+from cla.layout.geometry import GEOMETRY_OPERATORS
+from cla.layout.perturb import CONTROLS, OPERATORS, OperatorNotApplicable
 from cla.layout.spec import Chain, ChainSpec, Role
 from cla.model.backbone import load_esm, resolve_device
 from cla.model.scoring import score_many
@@ -50,18 +63,36 @@ from cla.utils.seeding import set_all_seeds
 
 log = get_logger("cla.eval.audit")
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 NULL_OPERATORS = ("P1", "P2", "P3", "P4")
-POSITIVE_CONTROL = "P5"
-ESTIMATORS = {"span_pll": "span", "pll_pseudo": "pseudo"}
+ESTIMATORS = {"span_pll": "span", "pll_pseudo": "pseudo", "windowed_span_pll": "windowed"}
 DEFAULT_LENGTH_BINS = (0, 12, 14, 16, 18, 1000)
+ARMS = ("true", "false")
 
-# Pre-registered Gate G1 thresholds. Moving these after seeing data invalidates the gate.
+# ESM-2 trained on positions 0..1025. Rotary embeddings extrapolate silently past that, so
+# in-distribution gaps are checked against it per example.
+TRAINED_MAX_POSITION = 1025
+UNIFORM_PRIOR_PLL = -math.log(20)
+# A long-span estimator has to beat the uniform prior by this margin to count as usable.
+ESTIMATOR_MIN_MARGIN = 0.25
+OOD_LABEL = "out of distribution: position indices pass ESM-2's trained range of 1026"
+
+# Gate G1 thresholds. Moving these after seeing data invalidates the gate.
 G1_NSI_PROCEED = 0.25
 G1_RHO_PROCEED = 0.90
 G1_NSI_STOP = 0.15
 G1_DELTA_AUROC_STOP = 0.02
 G1_MIN_NULL_PASSES = 2
+GSI_PROCEED = 1.0
+GSI_CI_LO_PROCEED = 0.5
+GSI_MIN_GAPS = 2
+GSI_MIN_MODELS = 2
+
+# A dose-response is called a step when the log-log slope of median |delta| against gap
+# (gaps >= 1) has a CI entirely below this, graded when entirely above, mixed otherwise.
+# 0.25 means a 150-fold gap range changes the shift by under 3.5x. Fixed before the sweep ran.
+SHAPE_SLOPE_THRESHOLD = 0.25
+SHAPE_REFERENCE_GAP = 150
 
 # NSI is reported only when the binder/decoy median gap is at least this fraction of the
 # standard deviation of the original scores (a standardized gap of 0.2 is the conventional
@@ -168,6 +199,19 @@ def _finite(name: str, value: float | None, reasons: dict[str, str]) -> float | 
     return float(value)
 
 
+def _boot_entry(fn, *arrays, boot: dict, seed: int) -> dict[str, Any]:
+    """Bootstrap CI of `fn` as a `{value, ci_lo, ci_hi}` dict, or nulls with a reason."""
+    try:
+        value, lo, hi = bootstrap_ci(
+            fn, *arrays, n_boot=boot["n_boot"], alpha=boot["alpha"], seed=seed
+        )
+    except ValueError as e:
+        return {"value": None, "ci_lo": None, "ci_hi": None, "reason": str(e)}
+    if not np.isfinite(value):
+        return {"value": None, "ci_lo": None, "ci_hi": None, "reason": "non-finite value"}
+    return {"value": value, "ci_lo": lo, "ci_hi": hi}
+
+
 def compute_metrics(
     orig: np.ndarray,
     pert: np.ndarray,
@@ -179,10 +223,20 @@ def compute_metrics(
     min_bin_n: int,
     seed: int,
     min_standardized_separation: float = NSI_MIN_STANDARDIZED_SEPARATION,
+    ref_orig: np.ndarray | None = None,
+    ref_labels: np.ndarray | None = None,
 ) -> dict[str, Any]:
-    """Full metric set for one (operator, arm). Uncomputable metrics are null with a reason."""
+    """Pre-registered metric set for one (operator, arm). Uncomputable metrics are null with
+    a reason.
+
+    `ref_orig` and `ref_labels` are the baseline scores and labels of the whole population,
+    used for the binder/decoy separation; they default to `orig` and `labels` when the
+    perturbed examples already span both classes.
+    """
     reasons: dict[str, str] = {}
     out: dict[str, Any] = {"n_pairs": int(len(orig))}
+    ref_orig = orig if ref_orig is None else ref_orig
+    ref_labels = labels if ref_labels is None else ref_labels
 
     def attempt(name: str, fn):
         try:
@@ -191,20 +245,20 @@ def compute_metrics(
             reasons[name] = str(e)
             return None
 
-    binders, nonbinders = orig[labels == 1], orig[labels == 0]
-    out["binder_median"] = float(np.median(binders)) if binders.size else None
-    out["nonbinder_median"] = float(np.median(nonbinders)) if nonbinders.size else None
+    ref_binders, ref_nonbinders = ref_orig[ref_labels == 1], ref_orig[ref_labels == 0]
+    out["binder_median"] = float(np.median(ref_binders)) if ref_binders.size else None
+    out["nonbinder_median"] = float(np.median(ref_nonbinders)) if ref_nonbinders.size else None
     out["separation"] = (
         abs(out["binder_median"] - out["nonbinder_median"])
-        if binders.size and nonbinders.size
+        if ref_binders.size and ref_nonbinders.size
         else None
     )
     out["median_abs_shift"] = float(np.median(np.abs(orig - pert))) if len(orig) else None
 
-    def nsi_fn(a, b, y):
-        return nsi(a, b, a[y == 1], a[y == 0])
+    def nsi_fn(a, b):
+        return nsi(a, b, ref_binders, ref_nonbinders)
 
-    spread = float(np.std(orig)) if len(orig) else 0.0
+    spread = float(np.std(ref_orig)) if len(ref_orig) else 0.0
     out["standardized_separation"] = (
         out["separation"] / spread if out["separation"] is not None and spread > 0 else None
     )
@@ -227,7 +281,6 @@ def compute_metrics(
                 nsi_fn,
                 orig,
                 pert,
-                labels,
                 n_boot=boot["n_boot"],
                 alpha=boot["alpha"],
                 seed=seed,
@@ -263,51 +316,112 @@ def compute_metrics(
         out["length_stratified_nsi"] = attempt(
             "length_stratified_nsi",
             lambda: length_stratified_nsi(
-                orig, pert, cdr3b_len, binders, nonbinders, bins=bins, min_n=min_bin_n
+                orig, pert, cdr3b_len, ref_binders, ref_nonbinders, bins=bins, min_n=min_bin_n
             ),
         )
     out["null_reasons"] = reasons
     return out
 
 
-def compute_nsi_c(
-    orig_all: np.ndarray,
+def compute_geometry_entry(
+    orig: np.ndarray,
     index: np.ndarray,
-    pert: np.ndarray,
-    control_index: np.ndarray,
-    control_pert: np.ndarray,
+    geo: np.ndarray,
+    c1_index: np.ndarray,
+    c1: np.ndarray,
     *,
     boot: dict,
     seed: int,
 ) -> dict[str, Any]:
-    """NSI-C over the examples where both the operator and the P5 control applied.
+    """GSI and raw shift for one (geometry operator, gap, arm).
 
-    Restricting to the intersection keeps numerator and denominator on one example set, so
-    the bootstrap resamples them jointly.
+    Numerator and denominator are evaluated on the examples where both the geometry operator
+    and C1 applied, so the paired bootstrap resamples them on one index draw and
+    `median_abs_delta / c1_denominator` reproduces the GSI value.
     """
-    common, ia, ib = np.intersect1d(index, control_index, return_indices=True)
-    n = int(common.size)
-    if n == 0:
+    common, ia, ib = np.intersect1d(index, c1_index, return_indices=True)
+    if common.size == 0:
+        reason = "no examples where both the geometry operator and C1 applied"
         return {
-            "value": None,
-            "reason": "no examples where both operator and P5 applied",
-            "n_paired": 0,
+            "n_pairs": 0,
+            "median_abs_delta": None,
+            "median_abs_delta_ci": None,
+            "c1_denominator": None,
+            "gsi": {"value": None, "ci_lo": None, "ci_hi": None, "reason": reason},
         }
+    a, g, c = orig[common], geo[ia], c1[ib]
+    shift = _boot_entry(lambda x, y: float(np.median(np.abs(x - y))), a, g, boot=boot, seed=seed)
+    return {
+        "n_pairs": int(common.size),
+        "median_abs_delta": float(np.median(np.abs(a - g))),
+        "median_abs_delta_ci": [shift["ci_lo"], shift["ci_hi"]],
+        "c1_denominator": float(np.median(np.abs(a - c))),
+        "gsi": _boot_entry(gsi, a, g, c, boot=boot, seed=seed),
+    }
+
+
+def dose_response_shape(
+    orig: np.ndarray,
+    by_gap: dict[int, tuple[np.ndarray, np.ndarray]],
+    *,
+    boot: dict,
+    seed: int,
+) -> dict[str, Any]:
+    """Step-versus-graded summary of median |delta| against gap, over gaps >= 1.
+
+    `by_gap` maps gap -> (example index, scores). The fit uses the examples present at every
+    gap, so one bootstrap draw resamples all gaps jointly. The slope is the OLS slope of
+    log10 median |delta| on log10 gap. `fraction_of_reference` is each gap's median |delta|
+    over that at `SHAPE_REFERENCE_GAP`.
+    """
+    gaps = sorted(g for g in by_gap if g >= 1)
+    if len(gaps) < 3:
+        return {"shape": None, "reason": "fewer than three positive gaps"}
+    common = functools.reduce(np.intersect1d, [by_gap[g][0] for g in gaps])
+    if common.size == 0:
+        return {"shape": None, "reason": "no examples present at every gap"}
+    deltas = np.stack(
+        [np.abs(orig[common] - by_gap[g][1][np.searchsorted(by_gap[g][0], common)]) for g in gaps]
+    )
+    x = np.log10(np.asarray(gaps, dtype=float))
+
+    def slope(cols: np.ndarray) -> float:
+        med = np.median(deltas[:, cols], axis=1)
+        if (med <= 0).any():
+            raise ValueError("median |delta| is zero at a positive gap")
+        return float(np.polyfit(x, np.log10(med), 1)[0])
+
     try:
-        value, lo, hi = bootstrap_ci(
-            nsi_control,
-            orig_all[common],
-            pert[ia],
-            control_pert[ib],
-            n_boot=boot["n_boot"],
-            alpha=boot["alpha"],
-            seed=seed,
-        )
+        point = slope(np.arange(common.size))
     except ValueError as e:
-        return {"value": None, "reason": str(e), "n_paired": n}
-    if not np.isfinite(value):
-        return {"value": None, "reason": "non-finite value", "n_paired": n}
-    return {"value": value, "ci_lo": lo, "ci_hi": hi, "n_paired": n}
+        return {"shape": None, "reason": str(e), "n_pairs": int(common.size)}
+    rng = np.random.default_rng(seed)
+    draws = []
+    for _ in range(boot["n_boot"]):
+        try:
+            draws.append(slope(rng.integers(0, common.size, size=common.size)))
+        except ValueError:
+            continue
+    if len(draws) < boot["n_boot"] / 2:
+        return {"shape": None, "reason": "bootstrap slopes mostly undefined"}
+    lo, hi = np.percentile(draws, [100 * boot["alpha"] / 2, 100 * (1 - boot["alpha"] / 2)])
+    if hi < SHAPE_SLOPE_THRESHOLD:
+        shape = "step"
+    elif lo > SHAPE_SLOPE_THRESHOLD:
+        shape = "graded"
+    else:
+        shape = "mixed"
+    med = {g: float(np.median(deltas[i])) for i, g in enumerate(gaps)}
+    ref = med.get(SHAPE_REFERENCE_GAP)
+    return {
+        "shape": shape,
+        "loglog_slope": {"value": point, "ci_lo": float(lo), "ci_hi": float(hi)},
+        "slope_threshold": SHAPE_SLOPE_THRESHOLD,
+        "median_abs_delta": {str(g): v for g, v in med.items()},
+        "fraction_of_reference": ({str(g): v / ref for g, v in med.items()} if ref else None),
+        "reference_gap": SHAPE_REFERENCE_GAP,
+        "n_pairs": int(common.size),
+    }
 
 
 def compute_discrimination(
@@ -361,7 +475,7 @@ def evaluate_gate_g1(metrics: dict[str, dict[str, float | None]]) -> dict[str, A
         and m["spearman_rho"] <= G1_RHO_PROCEED
     ]
     null_nsi = [m["nsi"] for m in nulls.values() if _num(m.get("nsi"))]
-    p5_nsi = (metrics.get(POSITIVE_CONTROL) or {}).get("nsi")
+    p5_nsi = (metrics.get("P5") or {}).get("nsi")
     p5_moves_more = _num(p5_nsi) and bool(null_nsi) and p5_nsi > max(null_nsi)
 
     all_nsi_known = bool(nulls) and len(null_nsi) == len(nulls)
@@ -409,59 +523,71 @@ def evaluate_gate_g1(metrics: dict[str, dict[str, float | None]]) -> dict[str, A
     }
 
 
-def evaluate_gate_g1_nsi_c(metrics: dict[str, dict[str, float | None]]) -> dict[str, Any]:
-    """Gate G1 restated on NSI-C over `{op: {"nsi_c", "spearman_rho"}}`.
+def evaluate_gate_gsi_model(
+    gsi_table: dict[str, dict[str, dict[str, dict[str, float | None]]]],
+    *,
+    targets: list[str] | None = None,
+) -> dict[str, Any]:
+    """Per-model GSI rule over `{target: {op: {gap: {"value", "ci_lo"}}}}` (in-distribution gaps).
 
-    PROCEED: at least two of P1, P2, P4 have NSI-C >= 0.25 and Spearman rho <= 0.90.
-    UNDETERMINED: fewer than two pass but enough operators lack a value that the count could
-    still reach two. NOT_PROCEED otherwise. The thresholds are the pre-registered ones.
+    A gap qualifies when, for at least one of `targets` and one geometry operator, GSI >= 1.0
+    with a CI lower bound above 0.5. The model qualifies with at least two such gaps. `targets`
+    defaults to every target in the table.
     """
-    nulls = {op: m for op, m in metrics.items() if op in NULL_OPERATORS}
-    passing, failing, unknown = [], [], []
-    for op, m in nulls.items():
-        if not (_num(m.get("nsi_c")) and _num(m.get("spearman_rho"))):
-            unknown.append(op)
-        elif m["nsi_c"] >= G1_NSI_PROCEED and m["spearman_rho"] <= G1_RHO_PROCEED:
-            passing.append(op)
-        else:
-            failing.append(op)
-    if len(passing) >= G1_MIN_NULL_PASSES:
-        verdict = "PROCEED"
-    elif len(passing) + len(unknown) >= G1_MIN_NULL_PASSES:
-        verdict = "UNDETERMINED"
-    else:
-        verdict = "NOT_PROCEED"
+    names = [t for t in gsi_table if targets is None or t in targets]
+    by_gap: dict[int, list[dict[str, Any]]] = {}
+    for tname in names:
+        for op, gaps in gsi_table[tname].items():
+            for gap, e in gaps.items():
+                if _num(e.get("value")) and _num(e.get("ci_lo")):
+                    if e["value"] >= GSI_PROCEED and e["ci_lo"] > GSI_CI_LO_PROCEED:
+                        by_gap.setdefault(int(gap), []).append(
+                            {"target": tname, "op": op, "gsi": e["value"], "ci_lo": e["ci_lo"]}
+                        )
+    gaps = sorted(by_gap)
     return {
-        "verdict": verdict,
-        "null_operators_passing": passing,
-        "null_operators_failing": failing,
-        "null_operators_undetermined": unknown,
-        "n_null_passing": len(passing),
-        "thresholds": {
-            "nsi_c_proceed": G1_NSI_PROCEED,
-            "spearman_rho_proceed": G1_RHO_PROCEED,
-            "min_null_passes": G1_MIN_NULL_PASSES,
-        },
-        "per_operator": {op: dict(m) for op, m in nulls.items()},
+        "targets_considered": names,
+        "qualifying_gaps": gaps,
+        "qualifying": {str(g): by_gap[g] for g in gaps},
+        "model_qualifies": len(gaps) >= GSI_MIN_GAPS,
     }
 
 
-def _gate_inputs(operators: dict[str, dict], arm: str) -> dict[str, dict[str, float | None]]:
-    out = {}
-    for op, entry in operators.items():
-        m = entry["token_dropout"].get(arm)
-        if m is None:
-            continue
-        out[op] = {
-            "nsi": m["nsi"]["value"],
-            "nsi_c": m["nsi_c"]["value"],
-            "spearman_rho": m["spearman_rho"],
-            "delta_auroc": m["delta_auroc"],
+def _gsi_table(geometry: dict, arm: str) -> dict[str, dict[str, dict[str, Any]]]:
+    return {
+        op: {gap: per_arm[arm]["gsi"] for gap, per_arm in entry["gaps"].items()}
+        for op, entry in geometry["per_operator"].items()
+    }
+
+
+def evaluate_gate_g1_gsi(targets: dict[str, dict], headline_targets: list[str]) -> dict[str, Any]:
+    """Per-model GSI gate verdict inputs, on the published (token dropout on) arm.
+
+    The headline variant considers `headline_targets` only; `all_targets` is reported next to
+    it because MHC_HEAVY is diagnostic. The cross-model rule (at least two models qualify)
+    is applied by `cla.eval.aggregate`.
+    """
+    out: dict[str, Any] = {
+        "rule": (
+            f"for at least {GSI_MIN_GAPS} in-distribution gaps on at least {GSI_MIN_MODELS} "
+            f"models, GSI >= {GSI_PROCEED} for at least one target with CI lower bound "
+            f"> {GSI_CI_LO_PROCEED}"
+        ),
+        "headline_arm": "token_dropout=true",
+        "headline_targets": headline_targets,
+    }
+    for arm, key in (("true", "token_dropout_on"), ("false", "token_dropout_off")):
+        table = {name: _gsi_table(t["geometry"], arm) for name, t in targets.items()}
+        out[key] = {
+            "headline": evaluate_gate_gsi_model(table, targets=headline_targets),
+            "all_targets": evaluate_gate_gsi_model(table),
         }
     return out
 
 
 # --------------------------------------------------------------------------- audit core
+
+Job = dict[str, Any]  # {"index": list[int], "rendered": list[RenderedLayout], "reasons": Counter}
 
 
 def _render(spec: ChainSpec, tok, kwargs: dict):
@@ -471,45 +597,71 @@ def _render(spec: ChainSpec, tok, kwargs: dict):
         return None, str(e)
 
 
-def _empty_block(reason: str) -> dict[str, Any]:
-    """Placeholder with the gate-facing fields set to null and the reason recorded."""
-    return {
-        "n_pairs": 0,
-        "nsi": {"value": None, "ci_lo": None, "ci_hi": None, "reason": reason},
-        "nsi_c": {"value": None, "reason": reason, "n_paired": 0},
-        "spearman_rho": None,
-        "delta_auroc": None,
-        "decision_flip_rate": None,
-        "null_reasons": {"all": reason},
-    }
+def _short(err: str) -> str:
+    return err.split(":", 1)[-1].strip()[:60]
 
 
-def _p1_arm_agreement(scores: dict, operators: dict) -> dict[str, Any]:
-    """Agreement of P1's shifts between token-dropout arms; P1 changes no length."""
-    if "P1" not in operators:
-        return {"available": False, "reason": "P1 not in config operators"}
-    arms = {}
-    for arm in ("true", "false"):
-        p = scores[arm]["perturbed"].get("P1")
-        if not p or not p["index"]:
-            return {"available": False, "reason": f"no P1 pairs in token_dropout={arm} arm"}
-        idx = np.asarray(p["index"])
-        arms[arm] = np.asarray(p["scores"]) - np.asarray(scores[arm]["original"])[idx]
-    n_on, n_off = (operators["P1"]["token_dropout"][a]["nsi_c"]["value"] for a in ("true", "false"))
-    shift_rho = None
-    if arms["true"].size > 2:
-        r = float(rank_stability(arms["true"], arms["false"])["spearman_rho"])
-        shift_rho = r if np.isfinite(r) else None
+def build_spec_job(
+    fn,
+    examples: list[ChainSpec],
+    population: list[int],
+    tok,
+    render_kwargs: dict,
+    rng: np.random.Generator,
+    *,
+    overrides: dict | None = None,
+) -> Job:
+    """Apply a ChainSpec operator to `population` and render each result."""
+    idx, rendered, reasons = [], [], Counter()
+    for i in population:
+        try:
+            s2, over = fn(examples[i], rng)
+        except OperatorNotApplicable as e:
+            reasons[f"not_applicable: {e}"] += 1
+            continue
+        r, err = _render(s2, tok, {**render_kwargs, **over, **(overrides or {})})
+        if r is None:
+            reasons["render_failed: " + _short(err)] += 1
+            continue
+        idx.append(i)
+        rendered.append(r)
+    return {"index": idx, "rendered": rendered, "reasons": reasons}
+
+
+def max_position(r: RenderedLayout) -> int:
+    n = int(r.input_ids.shape[0])
+    return n - 1 if r.position_ids is None else int(r.position_ids.max())
+
+
+def build_geometry_job(
+    op: str, gap: int, originals: list[RenderedLayout], population: list[int], *, check_range: bool
+) -> Job:
+    """Apply a geometry operator to the baseline layouts of `population`.
+
+    With `check_range`, examples whose largest position index passes ESM-2's trained range
+    are excluded and counted, so an in-distribution gap never measures extrapolation.
+    """
+    idx, rendered, reasons = [], [], Counter()
+    for i in population:
+        try:
+            r = GEOMETRY_OPERATORS[op](originals[i], gap)
+        except KeyError:
+            reasons["not_applicable: layout has no PEPTIDE chain"] += 1
+            continue
+        if check_range and max_position(r) > TRAINED_MAX_POSITION:
+            reasons["position_past_trained_range"] += 1
+            continue
+        idx.append(i)
+        rendered.append(r)
+    return {"index": idx, "rendered": rendered, "reasons": reasons}
+
+
+def _restrict(job: Job, valid: set[int]) -> Job:
+    keep = [k for k, i in enumerate(job["index"]) if i in valid]
     return {
-        "available": True,
-        "nsi_c_dropout_on": n_on,
-        "nsi_c_dropout_off": n_off,
-        "nsi_c_abs_diff": abs(n_on - n_off) if n_on is not None and n_off is not None else None,
-        "shift_spearman_rho": shift_rho,
-        "median_abs_diff_of_shifts": float(np.median(np.abs(arms["true"] - arms["false"]))),
-        "median_abs_shift_dropout_on": float(np.median(np.abs(arms["true"]))),
-        "median_abs_shift_dropout_off": float(np.median(np.abs(arms["false"]))),
-        "n_pairs": int(arms["true"].size),
+        "index": [job["index"][k] for k in keep],
+        "rendered": [job["rendered"][k] for k in keep],
+        "reasons": job["reasons"],
     }
 
 
@@ -517,157 +669,387 @@ def target_name(roles: list[str]) -> str:
     return "+".join(roles)
 
 
+def _estimator_for(scoring: dict, name: str) -> tuple[str, dict[str, Any]]:
+    """Estimator name and its parameters for one target."""
+    est = scoring.get("estimators", {}).get(name, scoring.get("estimator", "span_pll"))
+    if est not in ESTIMATORS:
+        raise ValueError(f"unknown estimator {est!r} for target {name}")
+    params = dict(scoring.get("windowed", {})) if est == "windowed_span_pll" else {}
+    return est, params
+
+
 def _audit_target(
     model,
     tok,
     roles: list[str],
     *,
-    method: str,
+    estimator: tuple[str, dict[str, Any]],
     batch_size: int,
-    originals: list,
-    jobs: dict[str, dict[str, Any]],
-    sweep: dict[str, dict[str, Any]],
-    ops: list[str],
+    examples: list[ChainSpec],
+    originals: list[RenderedLayout],
+    positives: list[int],
+    op_jobs: dict[str, Job],
+    sweep: dict[str, Job],
+    geo_jobs: dict[tuple[str, int], Job],
+    c2_job: Job,
     labels: np.ndarray,
     cdr3b_len: np.ndarray,
-    n_examples: int,
     boot: dict,
     bins: tuple[float, ...],
     min_bin_n: int,
     seed: int,
     config: dict,
     events: JsonlLogger,
+    render_kwargs: dict,
 ) -> dict[str, Any]:
     """Score every layout under both token-dropout arms for one target role set."""
     name = target_name(roles)
+    est_name, est_params = estimator
+    method = ESTIMATORS[est_name]
     mkw = {"boot": boot, "bins": bins, "min_bin_n": min_bin_n, "seed": seed}
-    raw: dict[str, dict] = {}  # arm -> {"orig", "ops": {op: scores}, "sweep": {c: scores}}
+    valid_idx = [i for i, o in enumerate(originals) if all(r in o.chain_slices for r in roles)]
+    valid = set(valid_idx)
+    if len(roles) != 1:
+        raise ValueError("C1 mutates the context of a single scored role; use single-role targets")
+    gaps = [int(g) for g in config["geometry"]["gaps"]]
+    ood_gaps = [int(g) for g in config["geometry"].get("out_of_distribution", [])]
+    c1_ns = [int(n) for n in config["controls"]["c1_n_mutations"]]
+    gsi_n = int(config["controls"]["gsi_denominator_n"])
+
+    # C1 depends on the scored role (it mutates the other chains), so it is built per target.
+    ctl_jobs: dict[str, Job] = {}
+    for n in c1_ns:
+        fn = functools.partial(CONTROLS["C1"], n_mutations=n, target_role=roles[0])
+        ctl_jobs[f"C1:{n}"] = build_spec_job(
+            fn,
+            examples,
+            [i for i in positives if i in valid],
+            tok,
+            render_kwargs,
+            np.random.default_rng([seed, 300, n]),
+        )
+    if roles[0] == Role.TCRB.value:
+        ctl_jobs["C2"] = {
+            "index": [],
+            "rendered": [],
+            "reasons": Counter({"not_applicable: C2 swaps the scored TCRB chain": 1}),
+        }
+    else:
+        ctl_jobs["C2"] = c2_job
+
+    named: dict[str, Job] = {}
+    for op, j in op_jobs.items():
+        named[op] = _restrict(j, valid)
+    for c, j in sweep.items():
+        named[f"sweep:{c}"] = _restrict(j, valid)
+    for key, j in ctl_jobs.items():
+        named[key] = _restrict(j, valid)
+    gap0_done = False
+    for (op, gap), j in geo_jobs.items():
+        if gap == 0:
+            # G1 and G2 render the identical layout at gap 0; one scoring serves both.
+            if not gap0_done:
+                named["G@0"] = _restrict(j, valid)
+                gap0_done = True
+            continue
+        named[f"{op}@{gap}"] = _restrict(j, valid)
 
     def score(rendered, desc):
         return score_many(
-            model, tok, rendered, roles, method=method, batch_size=batch_size, desc=desc
+            model,
+            tok,
+            rendered,
+            roles,
+            method=method,
+            batch_size=batch_size,
+            desc=desc,
+            **est_params,
         )
 
-    for arm_name, enabled in (("true", True), ("false", False)):
+    raw: dict[str, dict] = {}
+    for arm, enabled in (("true", True), ("false", False)):
         tag = f"{name} td={enabled}"
         with token_dropout(model, enabled):
-            arm = {"orig": score(originals, f"{tag} orig"), "ops": {}, "sweep": {}}
-            for op in ops:
-                if jobs[op]["index"]:
-                    arm["ops"][op] = score(jobs[op]["rendered"], f"{tag} {op}")
-                    events.log("operator_done", target=name, op=op, token_dropout=enabled)
-            for c, job in sweep.items():
-                if job["index"]:
-                    arm["sweep"][c] = score(job["rendered"], f"{tag} P2 sep={c}")
-        raw[arm_name] = arm
+            orig = np.full(len(originals), np.nan)
+            # Positives and decoys are scored as separate calls so the positive baseline
+            # shares batch composition with the geometry jobs. Accelerator kernels are not
+            # bitwise batch-invariant, and the gap-0 check compares for exact equality.
+            pos_set = set(positives)
+            for part in (
+                [i for i in valid_idx if i in pos_set],
+                [i for i in valid_idx if i not in pos_set],
+            ):
+                if part:
+                    orig[part] = score([originals[i] for i in part], f"{tag} orig")
+            scored = {}
+            for key, j in named.items():
+                if j["index"]:
+                    t0 = time.perf_counter()
+                    log.info("start %s %s n=%d", tag, key, len(j["index"]))
+                    scored[key] = (np.asarray(j["index"]), score(j["rendered"], f"{tag} {key}"))
+                    log.info("done %s %s in %.0fs", tag, key, time.perf_counter() - t0)
+                    events.log("scored", target=name, job=key, token_dropout=enabled)
+        raw[arm] = {"orig": orig, "scored": scored}
 
-    def block(arm, orig, index, pert):
-        ix = np.asarray(index)
-        m = compute_metrics(orig[ix], pert, labels[ix], cdr3b_len[ix], **mkw)
-        if POSITIVE_CONTROL not in arm["ops"]:
-            m["nsi_c"] = {"value": None, "reason": "P5 not in config operators", "n_paired": 0}
-        else:
-            m["nsi_c"] = compute_nsi_c(
-                orig,
-                ix,
-                pert,
-                np.asarray(jobs[POSITIVE_CONTROL]["index"]),
-                arm["ops"][POSITIVE_CONTROL],
-                boot=boot,
-                seed=seed,
-            )
-        return m
-
-    metrics: dict[str, dict[str, dict]] = {}
-    sweep_metrics: dict[str, dict[str, dict]] = {}
-    for arm_name, arm in raw.items():
-        metrics[arm_name], sweep_metrics[arm_name] = {}, {}
-        for op in ops:
-            if op not in arm["ops"]:
-                metrics[arm_name][op] = _empty_block("no applicable examples")
-                continue
-            m = block(arm, arm["orig"], jobs[op]["index"], arm["ops"][op])
-            if op == POSITIVE_CONTROL:
-                m["nsi_c"] = {
-                    "value": None,
-                    "reason": "positive control is the NSI-C denominator",
-                    "n_paired": m["n_pairs"],
-                }
-            metrics[arm_name][op] = m
-        for c, job in sweep.items():
-            sweep_metrics[arm_name][c] = (
-                block(arm, arm["orig"], job["index"], arm["sweep"][c])
-                if c in arm["sweep"]
-                else _empty_block("no examples rendered")
+    # Inertness: a gap of 0 must reproduce the baseline score bit for bit.
+    inertness: dict[str, Any] = {}
+    for arm in ARMS:
+        idx, sc = raw[arm]["scored"].get("G@0", (np.array([], dtype=int), np.array([])))
+        diff = float(np.max(np.abs(sc - raw[arm]["orig"][idx]))) if idx.size else None
+        inertness[arm] = {"max_abs_diff": diff, "n": int(idx.size)}
+        if diff is None or diff != 0.0:
+            raise RuntimeError(
+                f"{name}: gap-0 geometry changed the score (max |diff|={diff}, n={idx.size}); "
+                "the geometry operators are not inert"
             )
 
-    scores = {
-        arm_name: {
-            "original": arm["orig"].tolist(),
-            "perturbed": {
-                op: {"index": jobs[op]["index"], "scores": arm["ops"][op].tolist()}
-                for op in arm["ops"]
-            },
-        }
-        for arm_name, arm in raw.items()
-    }
-    on, off = raw["true"]["orig"], raw["false"]["orig"]
-    on_off_shift = float(np.median(np.abs(on - off)))
-    if on_off_shift == 0.0:
+    on_off = float(np.nanmedian(np.abs(raw["true"]["orig"] - raw["false"]["orig"])))
+    if on_off == 0.0:
         raise RuntimeError("token_dropout toggle left every score unchanged; the control is inert")
 
-    operators: dict[str, dict] = {}
-    for op in ops:
-        job = jobs[op]
-        operators[op] = {
-            "kind": "positive_control" if op == POSITIVE_CONTROL else "null",
+    def sc_of(arm: str, key: str):
+        return raw[arm]["scored"].get(key)
+
+    def geo_key(op: str, gap: int) -> str:
+        return "G@0" if gap == 0 else f"{op}@{gap}"
+
+    def geometry_block(op: str, gap_list: list[int]) -> dict[str, Any]:
+        per_gap: dict[str, dict] = {}
+        for gap in gap_list:
+            per_arm = {}
+            for arm in ARMS:
+                g, c1 = sc_of(arm, geo_key(op, gap)), sc_of(arm, f"C1:{gsi_n}")
+                per_arm[arm] = (
+                    compute_geometry_entry(
+                        raw[arm]["orig"], g[0], g[1], c1[0], c1[1], boot=boot, seed=seed
+                    )
+                    if g is not None and c1 is not None
+                    else _null_geometry("geometry or C1 job produced no examples")
+                )
+            per_gap[str(gap)] = per_arm
+        return {
+            "gaps": per_gap,
             "applicability": {
-                "n_attempted": n_examples,
+                str(gap): {
+                    "n_applied": len(geo_jobs[(op, gap)]["index"]),
+                    "n_valid_population": len(valid.intersection(geo_jobs[(op, gap)]["index"])),
+                    "exclusion_reasons": dict(geo_jobs[(op, gap)]["reasons"]),
+                }
+                for gap in gap_list
+            },
+        }
+
+    geo_ops = list(config["geometry"]["operators"])
+    geometry: dict[str, Any] = {
+        "population": "positives",
+        "denominator": {"control": "C1", "n_mutations": gsi_n},
+        "gaps_in_distribution": gaps,
+        "per_operator": {},
+    }
+    for op in geo_ops:
+        block = geometry_block(op, gaps)
+        block["dose_response"] = {}
+        for arm in ARMS:
+            by_gap = {}
+            for gap in gaps:
+                s = sc_of(arm, geo_key(op, gap))
+                if s is not None and gap >= 1:
+                    by_gap[gap] = s
+            block["dose_response"][arm] = dose_response_shape(
+                raw[arm]["orig"], by_gap, boot=boot, seed=seed
+            )
+        geometry["per_operator"][op] = block
+    geometry["out_of_distribution"] = {
+        "label": OOD_LABEL,
+        "gaps": ood_gaps,
+        "excluded_from_headline": True,
+        "per_operator": {op: geometry_block(op, ood_gaps) for op in geo_ops} if ood_gaps else {},
+    }
+    geometry["inertness_check"] = {"passed": True, "gap": 0, "per_arm": inertness}
+    geometry["token_dropout_internal_control"] = (
+        "Geometry operators leave input_ids, attention_mask and sequence length unchanged, so "
+        "token dropout's rescale factor is identical before and after. Any difference between "
+        "the on and off arms therefore reflects how the model's response to geometry depends on "
+        "token dropout, with no length or content change confounding it."
+    )
+
+    def control_entry(arm: str, key: str) -> dict[str, Any]:
+        s = sc_of(arm, key)
+        if s is None:
+            return {"n_pairs": 0, "median_abs_delta": None, "reason": "no applicable examples"}
+        a = raw[arm]["orig"][s[0]]
+        ci = _boot_entry(
+            lambda x, y: float(np.median(np.abs(x - y))), a, s[1], boot=boot, seed=seed
+        )
+        return {
+            "n_pairs": int(s[0].size),
+            "median_abs_delta": float(np.median(np.abs(a - s[1]))),
+            "median_abs_delta_ci": [ci["ci_lo"], ci["ci_hi"]],
+        }
+
+    controls = {
+        "C1": {str(n): {arm: control_entry(arm, f"C1:{n}") for arm in ARMS} for n in c1_ns},
+        "C2": {
+            "applicability": {
+                "n_applied": len(ctl_jobs["C2"]["index"]),
+                "exclusion_reasons": dict(ctl_jobs["C2"]["reasons"]),
+            },
+            "token_dropout": {arm: control_entry(arm, "C2") for arm in ARMS},
+        },
+    }
+
+    def block(arm: str, key: str) -> dict[str, Any]:
+        idx, pert = raw[arm]["scored"][key]
+        orig = raw[arm]["orig"]
+        ref = np.asarray(valid_idx)
+        return compute_metrics(
+            orig[idx],
+            pert,
+            labels[idx],
+            cdr3b_len[idx],
+            ref_orig=orig[ref],
+            ref_labels=labels[ref],
+            **mkw,
+        )
+
+    operators: dict[str, dict] = {}
+    for op in op_jobs:
+        job = named[op]
+        entry = {
+            "kind": "null",
+            "applicability": {
+                "n_attempted": len(valid_idx),
                 "n_applied": len(job["index"]),
-                "n_excluded": n_examples - len(job["index"]),
+                "n_excluded": len(valid_idx) - len(job["index"]),
                 "exclusion_reasons": dict(job["reasons"]),
             },
-            "token_dropout": {arm: metrics[arm][op] for arm in ("true", "false")},
+            "token_dropout": {
+                arm: block(arm, op) if op in raw[arm]["scored"] else _empty_block("no examples")
+                for arm in ARMS
+            },
         }
         if op == "P4":
-            operators[op]["spacer_length"] = config.get("spacer_length")
-
+            entry["spacer_length"] = config.get("spacer_length")
+        operators[op] = entry
     p2_sweep = {
         c: {
             "applicability": {
-                "n_applied": len(sweep[c]["index"]),
-                "exclusion_reasons": dict(sweep[c]["reasons"]),
+                "n_applied": len(named[f"sweep:{c}"]["index"]),
+                "exclusion_reasons": dict(named[f"sweep:{c}"]["reasons"]),
             },
-            "token_dropout": {arm: sweep_metrics[arm][c] for arm in ("true", "false")},
+            "token_dropout": {
+                arm: block(arm, f"sweep:{c}")
+                if f"sweep:{c}" in raw[arm]["scored"]
+                else _empty_block("no examples")
+                for arm in ARMS
+            },
         }
         for c in sweep
     }
 
-    def gate(fn):
-        g = fn(_gate_inputs(operators, "true"))
-        g["token_dropout_off"] = fn(_gate_inputs(operators, "false"))
-        g["headline_arm"] = "token_dropout=true"
-        return g
+    def gate_inputs(arm: str) -> dict[str, dict]:
+        return {
+            op: {
+                "nsi": e["token_dropout"][arm]["nsi"]["value"],
+                "spearman_rho": e["token_dropout"][arm]["spearman_rho"],
+                "delta_auroc": e["token_dropout"][arm]["delta_auroc"],
+            }
+            for op, e in operators.items()
+        }
 
+    pre = evaluate_gate_g1(gate_inputs("true"))
+    pre["token_dropout_off"] = evaluate_gate_g1(gate_inputs("false"))
+    pre["headline_arm"] = "token_dropout=true"
+
+    base_med = float(np.median(raw["true"]["orig"][valid_idx]))
+    sanity = {
+        "median_baseline_pll_dropout_on": base_med,
+        "uniform_prior_reference": UNIFORM_PRIOR_PLL,
+        "margin_over_uniform_prior": base_med - UNIFORM_PRIOR_PLL,
+        "required_margin": ESTIMATOR_MIN_MARGIN,
+        "usable": bool(base_med - UNIFORM_PRIOR_PLL >= ESTIMATOR_MIN_MARGIN),
+    }
+    events.log("target_done", target=name, estimator=est_name, **sanity)
+
+    scores = {
+        arm: {
+            "original": [None if np.isnan(v) else float(v) for v in raw[arm]["orig"]],
+            "perturbed": {
+                key: {"index": idx.tolist(), "scores": sc.tolist()}
+                for key, (idx, sc) in raw[arm]["scored"].items()
+            },
+        }
+        for arm in ARMS
+    }
     return {
         "target_roles": roles,
+        "estimator": {"name": est_name, "params": est_params, "sanity": sanity},
+        "n_valid": len(valid_idx),
         "discrimination": {
-            arm: compute_discrimination(raw[arm]["orig"], labels, boot=boot, seed=seed)
-            for arm in ("true", "false")
+            arm: compute_discrimination(
+                raw[arm]["orig"][valid_idx], labels[valid_idx], boot=boot, seed=seed
+            )
+            for arm in ARMS
         },
         "token_dropout_control": {
             "mechanism": "model.esm.embeddings.token_dropout and model.config.token_dropout "
             "set together; module attribute is what forward reads",
-            "median_abs_original_score_diff_on_vs_off": on_off_shift,
+            "median_abs_original_score_diff_on_vs_off": on_off,
         },
-        "p1_arm_agreement": _p1_arm_agreement(scores, operators),
+        "geometry": geometry,
+        "controls": controls,
         "operators": operators,
         "p2_separator_sweep": p2_sweep,
         "scores": scores,
-        "gate_g1": {
-            "preregistered": gate(evaluate_gate_g1),
-            "nsi_c": gate(evaluate_gate_g1_nsi_c),
-        },
+        "gate_g1_preregistered": pre,
+    }
+
+
+def _null_geometry(reason: str) -> dict[str, Any]:
+    return {
+        "n_pairs": 0,
+        "median_abs_delta": None,
+        "median_abs_delta_ci": None,
+        "c1_denominator": None,
+        "gsi": {"value": None, "ci_lo": None, "ci_hi": None, "reason": reason},
+    }
+
+
+def _empty_block(reason: str) -> dict[str, Any]:
+    """Placeholder with the gate-facing fields set to null and the reason recorded."""
+    return {
+        "n_pairs": 0,
+        "nsi": {"value": None, "ci_lo": None, "ci_hi": None, "reason": reason},
+        "spearman_rho": None,
+        "delta_auroc": None,
+        "decision_flip_rate": None,
+        "null_reasons": {"all": reason},
+    }
+
+
+def _p1_arm_agreement(targets_scores: dict, operators: dict) -> dict[str, Any]:
+    """Agreement of P1's shifts between token-dropout arms; P1 changes no length."""
+    if "P1" not in operators:
+        return {"available": False, "reason": "P1 not in config operators"}
+    arms = {}
+    for arm in ARMS:
+        p = targets_scores[arm]["perturbed"].get("P1")
+        if not p or not p["index"]:
+            return {"available": False, "reason": f"no P1 pairs in token_dropout={arm} arm"}
+        idx = np.asarray(p["index"])
+        orig = np.array([np.nan if v is None else v for v in targets_scores[arm]["original"]])
+        arms[arm] = np.asarray(p["scores"]) - orig[idx]
+    shift_rho = None
+    if arms["true"].size > 2:
+        r = float(rank_stability(arms["true"], arms["false"])["spearman_rho"])
+        shift_rho = r if np.isfinite(r) else None
+    return {
+        "available": True,
+        "shift_spearman_rho": shift_rho,
+        "median_abs_diff_of_shifts": float(np.median(np.abs(arms["true"] - arms["false"]))),
+        "median_abs_shift_dropout_on": float(np.median(np.abs(arms["true"]))),
+        "median_abs_shift_dropout_off": float(np.median(np.abs(arms["false"]))),
+        "n_pairs": int(arms["true"].size),
     }
 
 
@@ -692,15 +1074,31 @@ def run_audit(
     events = JsonlLogger(run_dir)
     events.log("run_start", run_id=manifest.run_id, device=str(dev))
 
-    ops = list(config["operators"])
-    unknown = [o for o in ops if o not in OPERATORS]
+    ops = list(config.get("operators", []))
+    unknown = [o for o in ops if o not in OPERATORS or o == "P5"]
     if unknown:
-        raise ValueError(f"unknown operators in config: {unknown}")
+        raise ValueError(f"unknown or unsupported operators in config: {unknown}; P5 is C2")
+    geo_ops = list(config["geometry"]["operators"])
+    unknown = [o for o in geo_ops if o not in GEOMETRY_OPERATORS]
+    if unknown:
+        raise ValueError(f"unknown geometry operators in config: {unknown}")
+    gaps = [int(g) for g in config["geometry"]["gaps"]]
+    ood_gaps = [int(g) for g in config["geometry"].get("out_of_distribution", [])]
+    if 0 not in gaps:
+        raise ValueError("geometry.gaps must include 0, the inertness check")
+    if any(g > 150 for g in gaps):
+        raise ValueError("in-distribution gaps are capped at 150; use geometry.out_of_distribution")
+    gsi_n = int(config["controls"]["gsi_denominator_n"])
+    if gsi_n not in [int(n) for n in config["controls"]["c1_n_mutations"]]:
+        raise ValueError("controls.gsi_denominator_n must be one of controls.c1_n_mutations")
+
     sep_base = int(config.get("separator_tokens", 1))
-    render_kwargs = {"separator_tokens": sep_base, "max_length": int(config.get("max_length", 512))}
+    render_kwargs = {
+        "separator_tokens": sep_base,
+        "symmetric_ends": bool(config.get("symmetric_ends", True)),
+        "max_length": int(config.get("max_length", 512)),
+    }
     scoring = config.get("scoring", {})
-    estimator = scoring.get("estimator", "span_pll")
-    method = ESTIMATORS[estimator]
     target_sets = [list(t) for t in scoring.get("targets", [["PEPTIDE"]])]
     if not target_sets or len({target_name(t) for t in target_sets}) != len(target_sets):
         raise ValueError(f"scoring.targets must be non-empty and distinct, got {target_sets}")
@@ -711,6 +1109,7 @@ def run_audit(
     }
     bins = tuple(config.get("length_bins", DEFAULT_LENGTH_BINS))
     min_bin_n = int(config.get("min_bin_n", 20))
+    headline_targets = list(config.get("headline_targets", [target_name(t) for t in target_sets]))
 
     # ---- sample
     shards = split_specs(specs)
@@ -718,98 +1117,146 @@ def run_audit(
     sample = stratified_subsample(
         shards, int(config["n_examples"]), np.random.default_rng([seed, 1])
     )
-    positives = [s for s, _ in sample]
+    positives_specs = [s for s, _ in sample]
     shard_of = {s.example_id: k for s, k in sample}
     negatives = make_mismatched_negatives(
-        positives,
+        positives_specs,
         np.random.default_rng([seed, 2]),
         n_per_positive=int(config.get("negatives_per_positive", 1)),
         known_positives=specs,
     )
     for n in negatives:
         shard_of[n.example_id] = shard_of[n.example_id.rsplit("__neg", 1)[0]]
-    candidates = positives + negatives
+    candidates = positives_specs + negatives
 
     model, tok = load_esm(config["model"], dev)
 
-    # ---- originals
+    # ---- baseline layouts
     examples: list[ChainSpec] = []
-    originals = []
+    originals: list[RenderedLayout] = []
     dropped_orig = Counter()
     for s in candidates:
         r, err = _render(s, tok, render_kwargs)
         if r is None:
-            dropped_orig[err.split(":", 1)[-1].strip()[:60]] += 1
+            dropped_orig[_short(err)] += 1
             continue
         examples.append(s)
         originals.append(r)
     labels = np.array([s.label for s in examples], dtype=float)
     cdr3b_len = np.array([len(s.by_role(Role.TCRB) or []) for s in examples], dtype=float)
+    everyone = list(range(len(examples)))
+    positives = [i for i in everyone if labels[i] == 1]
     events.log(
-        "sampled", n_positive=len(positives), n_negative=len(negatives), n_scored=len(examples)
+        "sampled",
+        n_positive=len(positives_specs),
+        n_negative=len(negatives),
+        n_scored=len(examples),
     )
 
-    # ---- perturbed layouts (applied once, scored under both arms)
+    # ---- operator layouts (built once, scored per target and arm)
     pool = sorted({c.sequence for s in specs if (c := s.by_role(Role.TCRB)) is not None})
-    jobs: dict[str, dict[str, Any]] = {}
+    op_jobs: dict[str, Job] = {}
     for k, op in enumerate(ops):
-        fn = OPERATORS[op]
-        if op == POSITIVE_CONTROL:
-            fn = functools.partial(fn, pool=pool)
-        rng = np.random.default_rng([seed, 100 + k])
-        idx, rendered, reasons = [], [], Counter()
-        for i, s in enumerate(examples):
-            try:
-                s2, over = fn(s, rng)
-            except OperatorNotApplicable as e:
-                reasons[f"not_applicable: {e}"] += 1
-                continue
-            if op == "P4" and config.get("spacer_length") is not None:
-                over = {**over, "spacer_before_peptide": int(config["spacer_length"])}
-            r, err = _render(s2, tok, {**render_kwargs, **over})
-            if r is None:
-                reasons["render_failed: " + err.split(":", 1)[-1].strip()[:60]] += 1
-                continue
-            idx.append(i)
-            rendered.append(r)
-        jobs[op] = {"index": idx, "rendered": rendered, "reasons": reasons}
+        fn = functools.partial(OPERATORS[op], baseline=sep_base) if op == "P2" else OPERATORS[op]
+        overrides = (
+            {"spacer_before_peptide": int(config["spacer_length"])}
+            if op == "P4" and config.get("spacer_length") is not None
+            else None
+        )
+        op_jobs[op] = build_spec_job(
+            fn,
+            examples,
+            everyone,
+            tok,
+            render_kwargs,
+            np.random.default_rng([seed, 100 + k]),
+            overrides=overrides,
+        )
 
-    sweep: dict[str, dict[str, Any]] = {}
+    sweep: dict[str, Job] = {}
     for c in config.get("separator_counts", []) if "P2" in ops else []:
+        if int(c) == sep_base:
+            continue  # renders the baseline exactly
         idx, rendered, reasons = [], [], Counter()
-        for i, s in enumerate(examples):
-            r, err = _render(s, tok, {**render_kwargs, "separator_tokens": int(c)})
+        for i in everyone:
+            r, err = _render(examples[i], tok, {**render_kwargs, "separator_tokens": int(c)})
             if r is None:
-                reasons["render_failed: " + err.split(":", 1)[-1].strip()[:60]] += 1
+                reasons["render_failed: " + _short(err)] += 1
                 continue
             idx.append(i)
             rendered.append(r)
         sweep[str(c)] = {"index": idx, "rendered": rendered, "reasons": reasons}
 
+    geo_jobs: dict[tuple[str, int], Job] = {}
+    for op in geo_ops:
+        for gap in gaps:
+            geo_jobs[(op, gap)] = build_geometry_job(
+                op, gap, originals, positives, check_range=True
+            )
+        for gap in ood_gaps:
+            geo_jobs[(op, gap)] = build_geometry_job(
+                op, gap, originals, positives, check_range=False
+            )
+    c2_job = build_spec_job(
+        functools.partial(CONTROLS["C2"], pool=pool),
+        examples,
+        positives,
+        tok,
+        render_kwargs,
+        np.random.default_rng([seed, 400]),
+    )
+    ood_positions = {
+        f"{op}@{gap}": {
+            "max_position_median": float(
+                np.median([max_position(r) for r in geo_jobs[(op, gap)]["rendered"]])
+            )
+            if geo_jobs[(op, gap)]["rendered"]
+            else None,
+            "fraction_past_trained_range": float(
+                np.mean(
+                    [
+                        max_position(r) > TRAINED_MAX_POSITION
+                        for r in geo_jobs[(op, gap)]["rendered"]
+                    ]
+                )
+            )
+            if geo_jobs[(op, gap)]["rendered"]
+            else None,
+        }
+        for op in geo_ops
+        for gap in ood_gaps
+    }
+
     # ---- scoring, once per target and token-dropout arm
-    targets = {
-        target_name(roles): _audit_target(
+    targets = {}
+    for roles in target_sets:
+        tname = target_name(roles)
+        targets[tname] = _audit_target(
             model,
             tok,
             roles,
-            method=method,
+            estimator=_estimator_for(scoring, tname),
             batch_size=batch_size,
+            examples=examples,
             originals=originals,
-            jobs=jobs,
+            positives=positives,
+            op_jobs=op_jobs,
             sweep=sweep,
-            ops=ops,
+            geo_jobs=geo_jobs,
+            c2_job=c2_job,
             labels=labels,
             cdr3b_len=cdr3b_len,
-            n_examples=len(examples),
             boot=boot,
             bins=bins,
             min_bin_n=min_bin_n,
             seed=seed,
             config=config,
             events=events,
+            render_kwargs=render_kwargs,
         )
-        for roles in target_sets
-    }
+        targets[tname]["geometry"]["out_of_distribution"]["max_positions"] = ood_positions
+    for t in targets.values():
+        t["p1_arm_agreement"] = _p1_arm_agreement(t["scores"], t["operators"])
 
     result = {
         "schema_version": SCHEMA_VERSION,
@@ -817,9 +1264,11 @@ def run_audit(
         "model": config["model"],
         "manifest": asdict(manifest),
         "config": config,
+        "baseline_rendering": render_kwargs,
+        "reductions": config.get("reductions"),
         "scoring": {
-            "estimator": estimator,
             "targets": target_sets,
+            "estimators": {n: t["estimator"] for n, t in targets.items()},
             "batch_size": batch_size,
             "nsi_min_standardized_separation": NSI_MIN_STANDARDIZED_SEPARATION,
         },
@@ -830,9 +1279,10 @@ def run_audit(
         "data": {
             "n_specs_total": len(specs),
             "shard_sizes": shard_sizes,
-            "n_positive_sampled": len(positives),
+            "n_positive_sampled": len(positives_specs),
             "n_negative": len(negatives),
             "n_scored": len(examples),
+            "n_positive_scored": len(positives),
             "dropped_original_render": dict(dropped_orig),
             "shard_counts_scored": dict(Counter(shard_of[s.example_id] for s in examples)),
         },
@@ -844,6 +1294,10 @@ def run_audit(
             "total_tokens": [int(r.input_ids.shape[0]) for r in originals],
         },
         "discrimination": {name: t["discrimination"] for name, t in targets.items()},
+        "gate_g1": {
+            "preregistered": {n: t["gate_g1_preregistered"] for n, t in targets.items()},
+            "gsi": evaluate_gate_g1_gsi(targets, headline_targets),
+        },
         "targets": targets,
     }
 
@@ -851,18 +1305,136 @@ def run_audit(
     (out_dir / "nsi.json").write_text(
         json.dumps(result, indent=1, default=json_default, allow_nan=False) + "\n"
     )
-    for name, t in targets.items():
-        events.log(
-            "gate_g1",
-            target=name,
-            preregistered=t["gate_g1"]["preregistered"]["verdict"],
-            nsi_c=t["gate_g1"]["nsi_c"]["verdict"],
-        )
+    write_summary_tsv(result, out_dir / "summary.tsv")
+    events.log(
+        "gate_g1",
+        preregistered={n: t["gate_g1_preregistered"]["verdict"] for n, t in targets.items()},
+        gsi_model_qualifies=result["gate_g1"]["gsi"]["token_dropout_on"]["headline"][
+            "model_qualifies"
+        ],
+    )
     events.close()
     return result
 
 
 # --------------------------------------------------------------------------- reporting
+
+
+SUMMARY_COLUMNS = (
+    "target",
+    "operator",
+    "gap",
+    "regime",
+    "token_dropout",
+    "median_abs_shift_nats",
+    "c1_denominator_nats",
+    "gsi",
+    "gsi_ci_lo",
+    "gsi_ci_hi",
+    "n_pairs",
+)
+
+
+def summary_rows(result: dict[str, Any]) -> list[list[Any]]:
+    """Flat rows, one per (target, operator, gap, token dropout arm).
+
+    Geometry rows carry GSI. Control and content-operator rows carry the raw shift only,
+    with empty GSI columns and an empty gap.
+    """
+    rows: list[list[Any]] = []
+    for tname, t in result["targets"].items():
+        geo = t["geometry"]
+        c1 = t["controls"]["C1"][str(geo["denominator"]["n_mutations"])]
+        groups = [
+            ("in_distribution", geo["per_operator"]),
+            ("out_of_distribution", geo["out_of_distribution"]["per_operator"]),
+        ]
+        for regime, per_op in groups:
+            for op, entry in per_op.items():
+                for gap, per_arm in entry["gaps"].items():
+                    for arm in ARMS:
+                        e = per_arm[arm]
+                        g = e["gsi"]
+                        rows.append(
+                            [
+                                tname,
+                                op,
+                                gap,
+                                regime,
+                                arm,
+                                e["median_abs_delta"],
+                                e["c1_denominator"],
+                                g["value"],
+                                g["ci_lo"],
+                                g["ci_hi"],
+                                e["n_pairs"],
+                            ]
+                        )
+        for n, per_arm in t["controls"]["C1"].items():
+            for arm in ARMS:
+                e = per_arm[arm]
+                rows.append(
+                    [
+                        tname,
+                        f"C1(n={n})",
+                        "",
+                        "control",
+                        arm,
+                        e["median_abs_delta"],
+                        c1[arm]["median_abs_delta"],
+                        None,
+                        None,
+                        None,
+                        e["n_pairs"],
+                    ]
+                )
+        for arm in ARMS:
+            e = t["controls"]["C2"]["token_dropout"][arm]
+            rows.append(
+                [
+                    tname,
+                    "C2",
+                    "",
+                    "control",
+                    arm,
+                    e["median_abs_delta"],
+                    c1[arm]["median_abs_delta"],
+                    None,
+                    None,
+                    None,
+                    e["n_pairs"],
+                ]
+            )
+        content = dict(t["operators"])
+        content.update({f"P2(sep={c})": e for c, e in t["p2_separator_sweep"].items()})
+        for op, entry in content.items():
+            for arm in ARMS:
+                m = entry["token_dropout"][arm]
+                rows.append(
+                    [
+                        tname,
+                        op,
+                        "",
+                        "content_coupled",
+                        arm,
+                        m.get("median_abs_shift"),
+                        c1[arm]["median_abs_delta"],
+                        None,
+                        None,
+                        None,
+                        m["n_pairs"],
+                    ]
+                )
+    return rows
+
+
+def write_summary_tsv(result: dict[str, Any], path: Path) -> None:
+    def cell(v) -> str:
+        return "" if v is None else (f"{v:.6g}" if isinstance(v, float) else str(v))
+
+    lines = ["\t".join(SUMMARY_COLUMNS)]
+    lines += ["\t".join(cell(v) for v in row) for row in summary_rows(result)]
+    path.write_text("\n".join(lines) + "\n")
 
 
 def _fmt(x, spec=".3f") -> str:
@@ -878,8 +1450,13 @@ def print_summary(result: dict[str, Any]) -> None:
         f"shards {d['shard_counts_scored']})"
     )
     for name, t in result["targets"].items():
-        print(f"\n-- target {name} --")
-        for arm in ("true", "false"):
+        est = t["estimator"]
+        print(
+            f"\n-- target {name} (estimator {est['name']}, median pLL "
+            f"{_fmt(est['sanity']['median_baseline_pll_dropout_on'])} vs prior "
+            f"{_fmt(UNIFORM_PRIOR_PLL)}) --"
+        )
+        for arm in ARMS:
             dc = t["discrimination"][arm]
             a = dc["auroc"]
             print(
@@ -888,42 +1465,31 @@ def print_summary(result: dict[str, Any]) -> None:
                 f"decoy {_fmt(dc['decoy_median'], '.4f')} "
                 f"AUROC {_fmt(a['value'])} [{_fmt(a['ci_lo'])}, {_fmt(a['ci_hi'])}]"
             )
-        header = (
-            f"{'op':<10}{'dropout':<9}{'n':>6}{'NSI-C [95% CI]':>28}{'n_pair':>8}"
-            f"{'rho':>8}{'shift':>9}{'flip':>8}"
-        )
+        denom = t["controls"]["C1"][str(t["geometry"]["denominator"]["n_mutations"])]["true"]
+        print(f"C1 denominator (dropout on): {_fmt(denom['median_abs_delta'], '.4f')} nats")
+        header = f"{'op':<5}{'gap':>5}{'|delta|':>10}{'GSI [95% CI] on':>26}{'GSI off':>10}"
         print(header)
         print("-" * len(header))
-
-        def row(label, arm, m):
-            c = m["nsi_c"]
-            ci = f"{_fmt(c['value'])} [{_fmt(c.get('ci_lo'))}, {_fmt(c.get('ci_hi'))}]"
-            print(
-                f"{label:<10}{arm:<9}{m['n_pairs']:>6}{ci:>28}{c.get('n_paired', 0):>8}"
-                f"{_fmt(m['spearman_rho']):>8}{_fmt(m.get('median_abs_shift'), '.4f'):>9}"
-                f"{_fmt(m.get('decision_flip_rate')):>8}"
-            )
-
-        for op, entry in t["operators"].items():
-            for arm in ("true", "false"):
-                row(op, "on" if arm == "true" else "off", entry["token_dropout"][arm])
-            if entry["applicability"]["n_excluded"]:
-                print(f"  {op}: excluded {entry['applicability']['exclusion_reasons']}")
-        for c, entry in t["p2_separator_sweep"].items():
-            for arm in ("true", "false"):
-                row(f"P2 sep={c}", "on" if arm == "true" else "off", entry["token_dropout"][arm])
-        g = t["gate_g1"]
-        pre, nc = g["preregistered"], g["nsi_c"]
-        print(
-            f"Gate G1 pre-registered (dropout on): {pre['verdict']}"
-            + (f" ({pre['reason']})" if pre["reason"] else "")
-        )
-        print(
-            f"Gate G1 NSI-C (dropout on): {nc['verdict']} "
-            f"[passing {nc['null_operators_passing']}, undetermined "
-            f"{nc['null_operators_undetermined']}]"
-        )
-        print(f"Gate G1 NSI-C (dropout off): {nc['token_dropout_off']['verdict']}")
+        for op, entry in t["geometry"]["per_operator"].items():
+            for gap, per_arm in entry["gaps"].items():
+                on, off = per_arm["true"], per_arm["false"]
+                g_on = on["gsi"]
+                ci = f"{_fmt(g_on['value'])} [{_fmt(g_on['ci_lo'])}, {_fmt(g_on['ci_hi'])}]"
+                print(
+                    f"{op:<5}{gap:>5}{_fmt(on['median_abs_delta'], '.4f'):>10}{ci:>26}"
+                    f"{_fmt(off['gsi']['value']):>10}"
+                )
+            shape = entry["dose_response"]["true"]
+            print(f"  {op} dose-response shape (dropout on): {shape['shape']}")
+    g = result["gate_g1"]["gsi"]["token_dropout_on"]
+    print(
+        f"\nGSI gate (this model, dropout on): "
+        f"headline qualifies={g['headline']['model_qualifies']} "
+        f"gaps {g['headline']['qualifying_gaps']}; all targets qualifies="
+        f"{g['all_targets']['model_qualifies']}"
+    )
+    for n, pre in result["gate_g1"]["preregistered"].items():
+        print(f"Gate G1 pre-registered [{n}] (dropout on): {pre['verdict']} {pre['reason'] or ''}")
 
 
 def main(argv: list[str] | None = None) -> int:

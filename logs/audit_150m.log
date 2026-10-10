@@ -1,0 +1,242 @@
+Loading weights:   0%|          | 0/491 [00:00<?, ?it/s]Loading weights: 100%|██████████| 491/491 [00:00<00:00, 34111.89it/s]
+13:04:53 INFO cla.eval.audit: start PEPTIDE td=True P1 n=2000
+13:05:32 INFO cla.eval.audit: done PEPTIDE td=True P1 in 39s
+13:05:32 INFO cla.eval.audit: start PEPTIDE td=True P2 n=2000
+13:06:33 INFO cla.eval.audit: done PEPTIDE td=True P2 in 61s
+13:06:33 INFO cla.eval.audit: start PEPTIDE td=True P4 n=2000
+13:07:27 INFO cla.eval.audit: done PEPTIDE td=True P4 in 54s
+13:07:27 INFO cla.eval.audit: start PEPTIDE td=True sweep:0 n=2000
+13:08:19 INFO cla.eval.audit: done PEPTIDE td=True sweep:0 in 51s
+13:08:19 INFO cla.eval.audit: start PEPTIDE td=True sweep:5 n=2000
+13:09:13 INFO cla.eval.audit: done PEPTIDE td=True sweep:5 in 54s
+13:09:13 INFO cla.eval.audit: start PEPTIDE td=True sweep:25 n=2000
+13:10:24 INFO cla.eval.audit: done PEPTIDE td=True sweep:25 in 72s
+13:10:24 INFO cla.eval.audit: start PEPTIDE td=True C1:5 n=1000
+13:10:48 INFO cla.eval.audit: done PEPTIDE td=True C1:5 in 24s
+13:10:48 INFO cla.eval.audit: start PEPTIDE td=True C1:20 n=1000
+13:11:12 INFO cla.eval.audit: done PEPTIDE td=True C1:20 in 24s
+13:11:12 INFO cla.eval.audit: start PEPTIDE td=True C2 n=1000
+13:11:36 INFO cla.eval.audit: done PEPTIDE td=True C2 in 24s
+13:11:36 INFO cla.eval.audit: start PEPTIDE td=True G@0 n=1000
+13:12:00 INFO cla.eval.audit: done PEPTIDE td=True G@0 in 24s
+13:12:00 INFO cla.eval.audit: start PEPTIDE td=True G1@1 n=1000
+13:12:24 INFO cla.eval.audit: done PEPTIDE td=True G1@1 in 24s
+13:12:24 INFO cla.eval.audit: start PEPTIDE td=True G1@2 n=1000
+13:12:47 INFO cla.eval.audit: done PEPTIDE td=True G1@2 in 24s
+13:12:47 INFO cla.eval.audit: start PEPTIDE td=True G1@5 n=1000
+13:13:11 INFO cla.eval.audit: done PEPTIDE td=True G1@5 in 24s
+13:13:11 INFO cla.eval.audit: start PEPTIDE td=True G1@10 n=1000
+13:13:34 INFO cla.eval.audit: done PEPTIDE td=True G1@10 in 24s
+13:13:34 INFO cla.eval.audit: start PEPTIDE td=True G1@25 n=1000
+13:13:58 INFO cla.eval.audit: done PEPTIDE td=True G1@25 in 24s
+13:13:58 INFO cla.eval.audit: start PEPTIDE td=True G1@50 n=1000
+13:14:22 INFO cla.eval.audit: done PEPTIDE td=True G1@50 in 24s
+13:14:22 INFO cla.eval.audit: start PEPTIDE td=True G1@100 n=1000
+13:14:45 INFO cla.eval.audit: done PEPTIDE td=True G1@100 in 24s
+13:14:45 INFO cla.eval.audit: start PEPTIDE td=True G1@150 n=1000
+13:15:09 INFO cla.eval.audit: done PEPTIDE td=True G1@150 in 24s
+13:15:09 INFO cla.eval.audit: start PEPTIDE td=True G1@400 n=1000
+13:15:32 INFO cla.eval.audit: done PEPTIDE td=True G1@400 in 24s
+13:15:32 INFO cla.eval.audit: start PEPTIDE td=True G2@1 n=1000
+13:15:56 INFO cla.eval.audit: done PEPTIDE td=True G2@1 in 24s
+13:15:56 INFO cla.eval.audit: start PEPTIDE td=True G2@2 n=1000
+13:16:20 INFO cla.eval.audit: done PEPTIDE td=True G2@2 in 24s
+13:16:20 INFO cla.eval.audit: start PEPTIDE td=True G2@5 n=1000
+13:16:43 INFO cla.eval.audit: done PEPTIDE td=True G2@5 in 24s
+13:16:43 INFO cla.eval.audit: start PEPTIDE td=True G2@10 n=1000
+13:17:07 INFO cla.eval.audit: done PEPTIDE td=True G2@10 in 24s
+13:17:07 INFO cla.eval.audit: start PEPTIDE td=True G2@25 n=1000
+13:17:30 INFO cla.eval.audit: done PEPTIDE td=True G2@25 in 24s
+13:17:30 INFO cla.eval.audit: start PEPTIDE td=True G2@50 n=1000
+13:17:54 INFO cla.eval.audit: done PEPTIDE td=True G2@50 in 24s
+13:17:54 INFO cla.eval.audit: start PEPTIDE td=True G2@100 n=1000
+13:18:17 INFO cla.eval.audit: done PEPTIDE td=True G2@100 in 24s
+13:18:17 INFO cla.eval.audit: start PEPTIDE td=True G2@150 n=1000
+13:18:41 INFO cla.eval.audit: done PEPTIDE td=True G2@150 in 24s
+13:18:41 INFO cla.eval.audit: start PEPTIDE td=True G2@400 n=1000
+13:19:05 INFO cla.eval.audit: done PEPTIDE td=True G2@400 in 24s
+13:19:53 INFO cla.eval.audit: start PEPTIDE td=False P1 n=2000
+13:20:40 INFO cla.eval.audit: done PEPTIDE td=False P1 in 48s
+13:20:40 INFO cla.eval.audit: start PEPTIDE td=False P2 n=2000
+13:21:50 INFO cla.eval.audit: done PEPTIDE td=False P2 in 70s
+13:21:50 INFO cla.eval.audit: start PEPTIDE td=False P4 n=2000
+13:22:42 INFO cla.eval.audit: done PEPTIDE td=False P4 in 52s
+13:22:42 INFO cla.eval.audit: start PEPTIDE td=False sweep:0 n=2000
+13:23:28 INFO cla.eval.audit: done PEPTIDE td=False sweep:0 in 47s
+13:23:28 INFO cla.eval.audit: start PEPTIDE td=False sweep:5 n=2000
+13:24:20 INFO cla.eval.audit: done PEPTIDE td=False sweep:5 in 52s
+13:24:20 INFO cla.eval.audit: start PEPTIDE td=False sweep:25 n=2000
+13:25:30 INFO cla.eval.audit: done PEPTIDE td=False sweep:25 in 70s
+13:25:30 INFO cla.eval.audit: start PEPTIDE td=False C1:5 n=1000
+13:25:54 INFO cla.eval.audit: done PEPTIDE td=False C1:5 in 24s
+13:25:54 INFO cla.eval.audit: start PEPTIDE td=False C1:20 n=1000
+13:26:17 INFO cla.eval.audit: done PEPTIDE td=False C1:20 in 24s
+13:26:17 INFO cla.eval.audit: start PEPTIDE td=False C2 n=1000
+13:26:41 INFO cla.eval.audit: done PEPTIDE td=False C2 in 24s
+13:26:41 INFO cla.eval.audit: start PEPTIDE td=False G@0 n=1000
+13:27:05 INFO cla.eval.audit: done PEPTIDE td=False G@0 in 24s
+13:27:05 INFO cla.eval.audit: start PEPTIDE td=False G1@1 n=1000
+13:27:29 INFO cla.eval.audit: done PEPTIDE td=False G1@1 in 24s
+13:27:29 INFO cla.eval.audit: start PEPTIDE td=False G1@2 n=1000
+13:27:53 INFO cla.eval.audit: done PEPTIDE td=False G1@2 in 24s
+13:27:53 INFO cla.eval.audit: start PEPTIDE td=False G1@5 n=1000
+13:28:16 INFO cla.eval.audit: done PEPTIDE td=False G1@5 in 24s
+13:28:16 INFO cla.eval.audit: start PEPTIDE td=False G1@10 n=1000
+13:28:40 INFO cla.eval.audit: done PEPTIDE td=False G1@10 in 24s
+13:28:40 INFO cla.eval.audit: start PEPTIDE td=False G1@25 n=1000
+13:29:03 INFO cla.eval.audit: done PEPTIDE td=False G1@25 in 24s
+13:29:03 INFO cla.eval.audit: start PEPTIDE td=False G1@50 n=1000
+13:29:27 INFO cla.eval.audit: done PEPTIDE td=False G1@50 in 24s
+13:29:27 INFO cla.eval.audit: start PEPTIDE td=False G1@100 n=1000
+13:29:51 INFO cla.eval.audit: done PEPTIDE td=False G1@100 in 24s
+13:29:51 INFO cla.eval.audit: start PEPTIDE td=False G1@150 n=1000
+13:30:14 INFO cla.eval.audit: done PEPTIDE td=False G1@150 in 24s
+13:30:14 INFO cla.eval.audit: start PEPTIDE td=False G1@400 n=1000
+13:30:38 INFO cla.eval.audit: done PEPTIDE td=False G1@400 in 24s
+13:30:38 INFO cla.eval.audit: start PEPTIDE td=False G2@1 n=1000
+13:31:01 INFO cla.eval.audit: done PEPTIDE td=False G2@1 in 24s
+13:31:01 INFO cla.eval.audit: start PEPTIDE td=False G2@2 n=1000
+13:31:25 INFO cla.eval.audit: done PEPTIDE td=False G2@2 in 24s
+13:31:25 INFO cla.eval.audit: start PEPTIDE td=False G2@5 n=1000
+13:31:49 INFO cla.eval.audit: done PEPTIDE td=False G2@5 in 24s
+13:31:49 INFO cla.eval.audit: start PEPTIDE td=False G2@10 n=1000
+13:32:12 INFO cla.eval.audit: done PEPTIDE td=False G2@10 in 24s
+13:32:12 INFO cla.eval.audit: start PEPTIDE td=False G2@25 n=1000
+13:32:36 INFO cla.eval.audit: done PEPTIDE td=False G2@25 in 24s
+13:32:36 INFO cla.eval.audit: start PEPTIDE td=False G2@50 n=1000
+13:32:59 INFO cla.eval.audit: done PEPTIDE td=False G2@50 in 24s
+13:32:59 INFO cla.eval.audit: start PEPTIDE td=False G2@100 n=1000
+13:33:23 INFO cla.eval.audit: done PEPTIDE td=False G2@100 in 24s
+13:33:23 INFO cla.eval.audit: start PEPTIDE td=False G2@150 n=1000
+13:33:46 INFO cla.eval.audit: done PEPTIDE td=False G2@150 in 24s
+13:33:46 INFO cla.eval.audit: start PEPTIDE td=False G2@400 n=1000
+13:34:10 INFO cla.eval.audit: done PEPTIDE td=False G2@400 in 24s
+13:35:33 INFO cla.eval.audit: start TCRB td=True P1 n=2000
+13:36:15 INFO cla.eval.audit: done TCRB td=True P1 in 42s
+13:36:15 INFO cla.eval.audit: start TCRB td=True P2 n=2000
+13:37:21 INFO cla.eval.audit: done TCRB td=True P2 in 65s
+13:37:21 INFO cla.eval.audit: start TCRB td=True P4 n=2000
+13:38:12 INFO cla.eval.audit: done TCRB td=True P4 in 51s
+13:38:12 INFO cla.eval.audit: start TCRB td=True sweep:0 n=2000
+13:38:59 INFO cla.eval.audit: done TCRB td=True sweep:0 in 48s
+13:38:59 INFO cla.eval.audit: start TCRB td=True sweep:5 n=2000
+13:39:52 INFO cla.eval.audit: done TCRB td=True sweep:5 in 53s
+13:39:52 INFO cla.eval.audit: start TCRB td=True sweep:25 n=2000
+13:41:04 INFO cla.eval.audit: done TCRB td=True sweep:25 in 72s
+13:41:04 INFO cla.eval.audit: start TCRB td=True C1:5 n=1000
+13:41:28 INFO cla.eval.audit: done TCRB td=True C1:5 in 24s
+13:41:28 INFO cla.eval.audit: start TCRB td=True C1:20 n=1000
+13:41:52 INFO cla.eval.audit: done TCRB td=True C1:20 in 24s
+13:41:52 INFO cla.eval.audit: start TCRB td=True G@0 n=1000
+13:42:16 INFO cla.eval.audit: done TCRB td=True G@0 in 24s
+13:42:16 INFO cla.eval.audit: start TCRB td=True G1@1 n=1000
+13:42:40 INFO cla.eval.audit: done TCRB td=True G1@1 in 24s
+13:42:40 INFO cla.eval.audit: start TCRB td=True G1@2 n=1000
+13:43:04 INFO cla.eval.audit: done TCRB td=True G1@2 in 24s
+13:43:04 INFO cla.eval.audit: start TCRB td=True G1@5 n=1000
+13:43:27 INFO cla.eval.audit: done TCRB td=True G1@5 in 24s
+13:43:27 INFO cla.eval.audit: start TCRB td=True G1@10 n=1000
+13:43:51 INFO cla.eval.audit: done TCRB td=True G1@10 in 24s
+13:43:51 INFO cla.eval.audit: start TCRB td=True G1@25 n=1000
+13:44:15 INFO cla.eval.audit: done TCRB td=True G1@25 in 24s
+13:44:15 INFO cla.eval.audit: start TCRB td=True G1@50 n=1000
+13:44:38 INFO cla.eval.audit: done TCRB td=True G1@50 in 24s
+13:44:38 INFO cla.eval.audit: start TCRB td=True G1@100 n=1000
+13:45:02 INFO cla.eval.audit: done TCRB td=True G1@100 in 24s
+13:45:02 INFO cla.eval.audit: start TCRB td=True G1@150 n=1000
+13:45:26 INFO cla.eval.audit: done TCRB td=True G1@150 in 24s
+13:45:26 INFO cla.eval.audit: start TCRB td=True G1@400 n=1000
+13:45:49 INFO cla.eval.audit: done TCRB td=True G1@400 in 24s
+13:45:49 INFO cla.eval.audit: start TCRB td=True G2@1 n=1000
+13:46:13 INFO cla.eval.audit: done TCRB td=True G2@1 in 24s
+13:46:13 INFO cla.eval.audit: start TCRB td=True G2@2 n=1000
+13:46:36 INFO cla.eval.audit: done TCRB td=True G2@2 in 24s
+13:46:36 INFO cla.eval.audit: start TCRB td=True G2@5 n=1000
+13:47:00 INFO cla.eval.audit: done TCRB td=True G2@5 in 24s
+13:47:00 INFO cla.eval.audit: start TCRB td=True G2@10 n=1000
+13:47:24 INFO cla.eval.audit: done TCRB td=True G2@10 in 24s
+13:47:24 INFO cla.eval.audit: start TCRB td=True G2@25 n=1000
+13:47:48 INFO cla.eval.audit: done TCRB td=True G2@25 in 24s
+13:47:48 INFO cla.eval.audit: start TCRB td=True G2@50 n=1000
+13:48:11 INFO cla.eval.audit: done TCRB td=True G2@50 in 24s
+13:48:11 INFO cla.eval.audit: start TCRB td=True G2@100 n=1000
+13:48:35 INFO cla.eval.audit: done TCRB td=True G2@100 in 24s
+13:48:35 INFO cla.eval.audit: start TCRB td=True G2@150 n=1000
+13:48:58 INFO cla.eval.audit: done TCRB td=True G2@150 in 24s
+13:48:58 INFO cla.eval.audit: start TCRB td=True G2@400 n=1000
+13:49:22 INFO cla.eval.audit: done TCRB td=True G2@400 in 24s
+13:50:10 INFO cla.eval.audit: start TCRB td=False P1 n=2000
+13:50:58 INFO cla.eval.audit: done TCRB td=False P1 in 48s
+13:50:58 INFO cla.eval.audit: start TCRB td=False P2 n=2000
+13:52:08 INFO cla.eval.audit: done TCRB td=False P2 in 70s
+13:52:08 INFO cla.eval.audit: start TCRB td=False P4 n=2000
+13:53:00 INFO cla.eval.audit: done TCRB td=False P4 in 52s
+13:53:00 INFO cla.eval.audit: start TCRB td=False sweep:0 n=2000
+13:53:47 INFO cla.eval.audit: done TCRB td=False sweep:0 in 47s
+13:53:47 INFO cla.eval.audit: start TCRB td=False sweep:5 n=2000
+13:54:39 INFO cla.eval.audit: done TCRB td=False sweep:5 in 52s
+13:54:39 INFO cla.eval.audit: start TCRB td=False sweep:25 n=2000
+13:55:49 INFO cla.eval.audit: done TCRB td=False sweep:25 in 70s
+13:55:49 INFO cla.eval.audit: start TCRB td=False C1:5 n=1000
+13:56:13 INFO cla.eval.audit: done TCRB td=False C1:5 in 24s
+13:56:13 INFO cla.eval.audit: start TCRB td=False C1:20 n=1000
+13:56:36 INFO cla.eval.audit: done TCRB td=False C1:20 in 24s
+13:56:36 INFO cla.eval.audit: start TCRB td=False G@0 n=1000
+13:57:00 INFO cla.eval.audit: done TCRB td=False G@0 in 24s
+13:57:00 INFO cla.eval.audit: start TCRB td=False G1@1 n=1000
+13:57:24 INFO cla.eval.audit: done TCRB td=False G1@1 in 24s
+13:57:24 INFO cla.eval.audit: start TCRB td=False G1@2 n=1000
+13:57:48 INFO cla.eval.audit: done TCRB td=False G1@2 in 24s
+13:57:48 INFO cla.eval.audit: start TCRB td=False G1@5 n=1000
+13:58:11 INFO cla.eval.audit: done TCRB td=False G1@5 in 24s
+13:58:11 INFO cla.eval.audit: start TCRB td=False G1@10 n=1000
+13:58:35 INFO cla.eval.audit: done TCRB td=False G1@10 in 24s
+13:58:35 INFO cla.eval.audit: start TCRB td=False G1@25 n=1000
+13:58:58 INFO cla.eval.audit: done TCRB td=False G1@25 in 24s
+13:58:58 INFO cla.eval.audit: start TCRB td=False G1@50 n=1000
+13:59:22 INFO cla.eval.audit: done TCRB td=False G1@50 in 24s
+13:59:22 INFO cla.eval.audit: start TCRB td=False G1@100 n=1000
+13:59:46 INFO cla.eval.audit: done TCRB td=False G1@100 in 24s
+13:59:46 INFO cla.eval.audit: start TCRB td=False G1@150 n=1000
+14:00:09 INFO cla.eval.audit: done TCRB td=False G1@150 in 24s
+14:00:09 INFO cla.eval.audit: start TCRB td=False G1@400 n=1000
+14:00:33 INFO cla.eval.audit: done TCRB td=False G1@400 in 24s
+14:00:33 INFO cla.eval.audit: start TCRB td=False G2@1 n=1000
+14:00:56 INFO cla.eval.audit: done TCRB td=False G2@1 in 24s
+14:00:56 INFO cla.eval.audit: start TCRB td=False G2@2 n=1000
+14:01:20 INFO cla.eval.audit: done TCRB td=False G2@2 in 24s
+14:01:20 INFO cla.eval.audit: start TCRB td=False G2@5 n=1000
+14:01:44 INFO cla.eval.audit: done TCRB td=False G2@5 in 24s
+14:01:44 INFO cla.eval.audit: start TCRB td=False G2@10 n=1000
+14:02:08 INFO cla.eval.audit: done TCRB td=False G2@10 in 24s
+14:02:08 INFO cla.eval.audit: start TCRB td=False G2@25 n=1000
+14:02:31 INFO cla.eval.audit: done TCRB td=False G2@25 in 24s
+14:02:31 INFO cla.eval.audit: start TCRB td=False G2@50 n=1000
+14:02:55 INFO cla.eval.audit: done TCRB td=False G2@50 in 24s
+14:02:55 INFO cla.eval.audit: start TCRB td=False G2@100 n=1000
+14:03:18 INFO cla.eval.audit: done TCRB td=False G2@100 in 24s
+14:03:18 INFO cla.eval.audit: start TCRB td=False G2@150 n=1000
+14:03:42 INFO cla.eval.audit: done TCRB td=False G2@150 in 24s
+14:03:42 INFO cla.eval.audit: start TCRB td=False G2@400 n=1000
+14:04:06 INFO cla.eval.audit: done TCRB td=False G2@400 in 24s
+14:07:42 INFO cla.eval.audit: start MHC_HEAVY td=True P1 n=2000
+14:10:59 INFO cla.eval.audit: done MHC_HEAVY td=True P1 in 197s
+14:10:59 INFO cla.eval.audit: start MHC_HEAVY td=True P2 n=2000
+14:15:26 INFO cla.eval.audit: done MHC_HEAVY td=True P2 in 267s
+14:15:26 INFO cla.eval.audit: start MHC_HEAVY td=True P4 n=2000
+14:18:52 INFO cla.eval.audit: done MHC_HEAVY td=True P4 in 206s
+14:18:52 INFO cla.eval.audit: start MHC_HEAVY td=True sweep:0 n=2000
+14:21:59 INFO cla.eval.audit: done MHC_HEAVY td=True sweep:0 in 187s
+14:21:59 INFO cla.eval.audit: start MHC_HEAVY td=True sweep:5 n=2000
+14:25:25 INFO cla.eval.audit: done MHC_HEAVY td=True sweep:5 in 206s
+14:25:25 INFO cla.eval.audit: start MHC_HEAVY td=True sweep:25 n=2000
+14:30:06 INFO cla.eval.audit: done MHC_HEAVY td=True sweep:25 in 281s
+14:30:06 INFO cla.eval.audit: start MHC_HEAVY td=True C1:5 n=1000
+14:31:42 INFO cla.eval.audit: done MHC_HEAVY td=True C1:5 in 96s
+14:31:42 INFO cla.eval.audit: start MHC_HEAVY td=True C1:20 n=1000
+14:33:18 INFO cla.eval.audit: done MHC_HEAVY td=True C1:20 in 96s
+14:33:18 INFO cla.eval.audit: start MHC_HEAVY td=True C2 n=1000
+14:34:54 INFO cla.eval.audit: done MHC_HEAVY td=True C2 in 96s
+14:34:54 INFO cla.eval.audit: start MHC_HEAVY td=True G@0 n=1000
+14:36:30 INFO cla.eval.audit: done MHC_HEAVY td=True G@0 in 96s
+14:36:30 INFO cla.eval.audit: start MHC_HEAVY td=True G1@1 n=1000
