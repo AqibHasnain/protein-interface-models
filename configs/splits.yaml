@@ -1,0 +1,27 @@
+# Single source of truth for held-out data. Nothing in this file may appear in
+# any training shard; tests/test_splits.py enforces that.
+
+# Class I alleles held out entirely. Chosen to span the A, B and C loci and to
+# mix common alleles (where held-out performance is measurable) with rarer ones
+# (where it is the harder generalization test).
+held_out_alleles:
+  - "HLA-A*01:01"
+  - "HLA-A*03:01"
+  - "HLA-A*24:02"
+  - "HLA-A*68:01"
+  - "HLA-B*08:01"
+  - "HLA-B*15:01"
+  - "HLA-B*44:03"
+  - "HLA-B*57:01"
+  - "HLA-C*07:02"
+  - "HLA-C*08:02"
+
+# Epitopes held out, together with every TCR observed against them. These two
+# carry functionally validated binders and non-binders in the Messemaker set,
+# which is why they are the evaluation epitopes rather than arbitrary ones.
+held_out_epitopes:
+  - "YLQPRTFLL"   # SARS-CoV-2 Spike 269-277
+  - "GLCTLVAML"   # EBV BMLF1 280-288
+
+seed: 0
+val_fraction: 0.1

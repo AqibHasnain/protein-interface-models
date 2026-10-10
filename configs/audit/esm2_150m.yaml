@@ -1,0 +1,10 @@
+extends: ../base.yaml
+run_name: audit-esm2-150m
+model: 150M
+n_examples: 500
+operators: [P1, P2, P4, P5]
+separator_counts: [0, 1, 5, 25]
+spacer_length: 25
+bootstrap:
+  n_boot: 10000
+  alpha: 0.05
