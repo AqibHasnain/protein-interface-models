@@ -21,7 +21,7 @@ import numpy as np  # noqa: E402
 BLUE, ORANGE, GREEN, VERMILION, GRAY = "#0072B2", "#E69F00", "#009E73", "#D55E00", "#555555"
 ARM_STYLE = {"true": ("token dropout on (published)", BLUE), "false": ("token dropout off", ORANGE)}
 OP_COLORS = {"P1": BLUE, "P2": ORANGE, "P3": GREEN, "P4": VERMILION, "P5": "#CC79A7"}
-NSI_LABEL = "NSI (median |score shift| / binder-decoy median gap, unitless)"
+NSI_C_LABEL = "NSI-C (median |score shift| / median |P5 score shift|, unitless)"
 GATE_NSI = 0.25
 
 
@@ -37,48 +37,48 @@ def _save(fig, out: Path, stem: str) -> None:
     plt.close(fig)
 
 
-def nsi_bars(result: dict):
-    ops = list(result["operators"])
+def nsi_c_bars(result: dict, target: dict):
+    ops = [op for op, e in target["operators"].items() if e["kind"] == "null"]
     fig, ax = plt.subplots(figsize=(1.6 * len(ops) + 2.5, 4.2))
     width = 0.38
     for j, arm in enumerate(("true", "false")):
         label, color = ARM_STYLE[arm]
         xs, vals, lo, hi = [], [], [], []
         for i, op in enumerate(ops):
-            n = result["operators"][op]["token_dropout"][arm]["nsi"]
+            n = target["operators"][op]["token_dropout"][arm]["nsi_c"]
             x = i + (j - 0.5) * width
             if n["value"] is None:
                 ax.text(x, 0, "n/a", ha="center", va="bottom", fontsize=8, color=GRAY)
                 continue
             xs.append(x)
             vals.append(n["value"])
-            # Bootstrap CIs on a ratio with a small denominator need not bracket the point.
-            lo.append(max(n["value"] - n["ci_lo"], 0.0))
-            hi.append(max(n["ci_hi"] - n["value"], 0.0))
+            lo.append(n["value"] - n["ci_lo"])
+            hi.append(n["ci_hi"] - n["value"])
         ax.bar(xs, vals, width, color=color, label=label)
         ax.errorbar(xs, vals, yerr=[lo, hi], fmt="none", ecolor="black", capsize=3, lw=1)
     ax.axhline(1.0, color=GRAY, ls="--", lw=1)
     ax.axhline(GATE_NSI, color=VERMILION, ls=":", lw=1.2)
-    # Linear below 1 so the gate line stays readable, logarithmic above for large NSI.
-    ax.set_yscale("symlog", linthresh=1.0)
     ax.set_ylim(bottom=0)
-    ax.text(-0.55, 1.0, "NSI = 1", va="bottom", ha="left", fontsize=8, color=GRAY)
+    ax.text(-0.55, 1.0, "NSI-C = 1", va="bottom", ha="left", fontsize=8, color=GRAY)
     ax.text(-0.55, GATE_NSI, "gate G1 = 0.25", va="bottom", ha="left", fontsize=8, color=VERMILION)
     ax.set_xlim(-0.6, len(ops) - 0.4)
     ax.set_xticks(range(len(ops)))
-    ax.set_xticklabels(
-        [f"{op}\n({result['operators'][op]['kind'].replace('_', ' ')})" for op in ops]
+    ax.set_xticklabels(ops)
+    ax.set_ylabel(NSI_C_LABEL, fontsize=8)
+    ax.set_title(
+        f"{result['run_name']} [{'+'.join(target['target_roles'])}]: "
+        "NSI-C by operator (95% bootstrap CI)",
+        fontsize=10,
     )
-    ax.set_ylabel(NSI_LABEL + "; symlog axis", fontsize=8)
-    ax.set_title(f"{result['run_name']}: NSI by operator (95% bootstrap CI)", fontsize=10)
     ax.legend(frameon=False, fontsize=8)
     _style(ax)
     return fig
 
 
-def length_nsi(result: dict):
+def length_nsi(result: dict, target: dict):
     fig, ax = plt.subplots(figsize=(6.5, 4.2))
-    for op, entry in result["operators"].items():
+    plotted = False
+    for op, entry in target["operators"].items():
         for arm, ls in (("true", "-"), ("false", "--")):
             strat = entry["token_dropout"][arm].get("length_stratified_nsi")
             if not strat:
@@ -93,31 +93,35 @@ def length_nsi(result: dict):
                 color=OP_COLORS.get(op, GRAY),
                 label=f"{op}, dropout {'on' if arm == 'true' else 'off'}",
             )
+            plotted = True
             ax.set_xticks(range(len(labels)))
             ax.set_xticklabels([f"{k}\nn={strat[k]['n']}" for k in labels], fontsize=8)
+    if not plotted:
+        plt.close(fig)
+        return None
     ax.axhline(GATE_NSI, color=VERMILION, ls=":", lw=1.2)
     ax.set_yscale("log")
     ax.set_xlabel("CDR3 beta length bucket (residues); buckets under the minimum n are omitted")
     ax.set_ylabel("NSI (unitless, log scale)")
-    ax.set_title(f"{result['run_name']}: NSI by CDR3 beta length", fontsize=10)
+    ax.set_title(f"{result['run_name']}: pre-registered NSI by CDR3 beta length", fontsize=10)
     ax.legend(frameon=False, fontsize=7, loc="center left", bbox_to_anchor=(1.02, 0.5))
     _style(ax)
     return fig
 
 
-def worst_operator_scatter(result: dict):
-    """Original vs perturbed score for the null operator with the highest NSI (dropout on)."""
+def worst_operator_scatter(result: dict, target: dict):
+    """Original vs perturbed score for the null operator with the highest NSI-C (dropout on)."""
     candidates = {
-        op: e["token_dropout"]["true"]["nsi"]["value"]
-        for op, e in result["operators"].items()
-        if e["kind"] == "null" and e["token_dropout"]["true"]["nsi"]["value"] is not None
+        op: e["token_dropout"]["true"]["nsi_c"]["value"]
+        for op, e in target["operators"].items()
+        if e["kind"] == "null" and e["token_dropout"]["true"]["nsi_c"]["value"] is not None
     }
     if not candidates:
         return None
     worst = max(candidates, key=candidates.get)
-    pert = result["scores"]["true"]["perturbed"][worst]
+    pert = target["scores"]["true"]["perturbed"][worst]
     idx = np.asarray(pert["index"])
-    orig = np.asarray(result["scores"]["true"]["original"])[idx]
+    orig = np.asarray(target["scores"]["true"]["original"])[idx]
     new = np.asarray(pert["scores"])
     labels = np.asarray(result["examples"]["label"])[idx]
     fig, ax = plt.subplots(figsize=(5, 5))
@@ -126,9 +130,43 @@ def worst_operator_scatter(result: dict):
         ax.scatter(orig[m], new[m], s=14, alpha=0.7, color=color, marker=marker, label=name)
     lim = [min(orig.min(), new.min()), max(orig.max(), new.max())]
     ax.plot(lim, lim, color=GRAY, lw=1, label="no change")
-    ax.set_xlabel("Peptide log-likelihood, original layout (nats per residue)")
-    ax.set_ylabel(f"Peptide log-likelihood, after {worst} (nats per residue)")
-    ax.set_title(f"{result['run_name']}: worst null operator {worst}", fontsize=10)
+    tname = "+".join(target["target_roles"])
+    ax.set_xlabel(f"{tname} span log-likelihood, original layout (nats per residue)")
+    ax.set_ylabel(f"{tname} span log-likelihood, after {worst} (nats per residue)")
+    ax.set_title(f"{result['run_name']}: highest-NSI-C null operator {worst}", fontsize=10)
+    ax.legend(frameon=False, fontsize=8)
+    _style(ax)
+    return fig
+
+
+def discrimination_auroc(result: dict):
+    """Raw-score AUROC for binder vs decoy per target and dropout arm, with 95% CI."""
+    names = list(result["targets"])
+    fig, ax = plt.subplots(figsize=(1.8 * len(names) + 2.5, 4.0))
+    width = 0.38
+    for j, arm in enumerate(("true", "false")):
+        label, color = ARM_STYLE[arm]
+        for i, name in enumerate(names):
+            a = result["discrimination"][name][arm]["auroc"]
+            if a["value"] is None:
+                continue
+            x = i + (j - 0.5) * width
+            ax.errorbar(
+                x,
+                a["value"],
+                yerr=[[a["value"] - a["ci_lo"]], [a["ci_hi"] - a["value"]]],
+                fmt="o",
+                color=color,
+                capsize=3,
+                label=label if i == 0 else None,
+            )
+    ax.axhline(0.5, color=GRAY, ls="--", lw=1)
+    ax.set_ylim(0.3, 0.8)
+    ax.set_xlim(-0.6, len(names) - 0.4)
+    ax.set_xticks(range(len(names)))
+    ax.set_xticklabels(names)
+    ax.set_ylabel("AUROC of raw span score, binder vs decoy")
+    ax.set_title(f"{result['run_name']}: zero-shot discrimination (95% bootstrap CI)", fontsize=10)
     ax.legend(frameon=False, fontsize=8)
     _style(ax)
     return fig
@@ -146,11 +184,16 @@ def main(argv: list[str] | None = None) -> int:
     for f in files:
         result = json.loads(f.read_text())
         name = result["run_name"]
-        _save(nsi_bars(result), out, f"{name}_nsi_by_operator")
-        _save(length_nsi(result), out, f"{name}_nsi_by_cdr3b_length")
-        scatter = worst_operator_scatter(result)
-        if scatter is not None:
-            _save(scatter, out, f"{name}_worst_operator_scatter")
+        _save(discrimination_auroc(result), out, f"{name}_discrimination_auroc")
+        for tname, target in result["targets"].items():
+            stem = f"{name}_{tname.lower()}"
+            _save(nsi_c_bars(result, target), out, f"{stem}_nsi_c_by_operator")
+            for fig, suffix in (
+                (length_nsi(result, target), "nsi_by_cdr3b_length"),
+                (worst_operator_scatter(result, target), "worst_operator_scatter"),
+            ):
+                if fig is not None:
+                    _save(fig, out, f"{stem}_{suffix}")
         print(f"figures for {name} -> {out}")
     return 0
 

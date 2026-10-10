@@ -17,3 +17,4 @@ to 5 remain the route for Phase 2 training if it is ever run at 650M scale.
 
 | Timestamp | Platform | Device | Wall-clock min | Est. cost | Git SHA | Purpose | Outcome |
 |---|---|---|---|---|---|---|---|
+| 2026-10-10T18:00Z | local | Apple M4 Max (MPS) | 12 | $0.00 | 9f13500 | Download and smoke all three ESM-2 checkpoints | OK: 35M/150M/650M all forward on MPS; 650M single forward over 300 residues is 0.46 s |

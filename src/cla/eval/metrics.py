@@ -81,6 +81,35 @@ def nsi(
     return float(np.median(np.abs(a - b)) / sep)
 
 
+def nsi_control(
+    original: object,
+    perturbed: object,
+    control_perturbed: object,
+    min_denominator: float = _MIN_DENOMINATOR,
+) -> float:
+    """NSI normalized by a positive control instead of the binder/non-binder gap.
+
+    ``median_i |s(x_i) - s(null(x_i))| / median_i |s(x_i) - s(control(x_i))|``
+
+    All three arrays must be scores of the same examples in the same order, so a paired
+    bootstrap resamples numerator and denominator over one example draw. A value of 1.0
+    means the nuisance relayout moves the score as much as the control perturbation.
+
+    Raises
+    ------
+    ValueError
+        If the control's median shift is below ``min_denominator``.
+    """
+    a, b = _paired(original, perturbed)
+    a, c = _paired(a, control_perturbed)
+    denom = float(np.median(np.abs(a - c)))
+    if denom < min_denominator:
+        raise ValueError(
+            f"median control shift {denom:.3g} is below {min_denominator:g}; NSI-C is undefined"
+        )
+    return float(np.median(np.abs(a - b)) / denom)
+
+
 def rank_stability(original: object, perturbed: object) -> dict[str, float]:
     """Spearman rho and Kendall tau (tau-b) between original and perturbed scores."""
     a, b = _paired(original, perturbed)

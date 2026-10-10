@@ -4,6 +4,6 @@ max_length: 512
 separator_tokens: 1
 scoring:
   estimator: span_pll   # span_pll | pll_pseudo
-  target_roles: [PEPTIDE]
+  targets: [[PEPTIDE]]
 data:
   specs: data/processed/vdjdb_specs.jsonl

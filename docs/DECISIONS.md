@@ -162,3 +162,70 @@ pseudo-log-likelihood of a peptide conditioned on a concatenated TCR and MHC
 context is near-identical for observed pairs and for mismatched decoys. Anyone
 building on a concatenation-based ESM-2 baseline without fine-tuning should know
 this before interpreting a score from it. It belongs in the audit write-up.
+
+## 2026-10-10 - Separator tokens are content, so the audit is redesigned around pure-geometry operators
+
+An adversarial review of the Phase 1 code found that the perturbations did not
+isolate what they claimed. Three confirmed defects, measured at 35M on CPU:
+
+1. The separator was `<pad>` with `attention_mask=1`. Its embedding row has norm
+   5.83, so k separators are k out-of-distribution content tokens that every
+   layer attends to. Decomposing the P2 shift at 25 separators into a tokens arm
+   and a positions-only arm put over 99% of it in the tokens arm. P2 and P4 were
+   measuring token insertion, not relative-position geometry.
+2. The P5 positive control moved scores less than the nulls it was meant to
+   bound (median 0.041 nats against P4's 0.37). Zero-shot ESM-2 largely ignores
+   the receptor, so swapping CDR3-beta changes the score mainly through the same
+   length and position path the nulls use. NSI-C was a ratio of one nuisance to
+   another and could be pushed above 1.0 by picking a bigger null.
+3. P1 left the first chain adjacent to `<cls>` and the last to `<eos>`. A
+   peptide in the first slot moved 2.5x to 6x more than one in the middle, so
+   part of P1 was special-token proximity rather than inter-chain distance.
+
+Separately, P2 drew its own baseline value (1 separator) on 25% of draws,
+rendering an identical string and contributing exact zeros to the median.
+
+**The redesign.** ESM-2 honors `position_ids` and positions enter only through
+rotary embeddings. That permits a perturbation with no content change at all:
+hold `input_ids` byte-identical and change only `position_ids`. Nullness stops
+being an argument about biology and becomes tensor equality, which a test can
+assert directly. These are the G operators, and they carry the headline.
+
+- **G1** adds a constant index gap at every chain break.
+- **G2** adds a gap before the peptide only.
+
+Rotary attention depends on index differences, so these change exactly the
+cross-chain relative offsets that H1 is about, and nothing else. Baseline
+rendering now uses zero separator tokens, leaving the position gap as the only
+chain-boundary signal.
+
+The content-coupled operators are kept and reported separately under honest
+labels, because "what happens if you insert linker tokens" is a real question,
+just not a question about geometry. P1 now renders with separators on both ends
+so no chain ever touches a special token, and P2 no longer draws its baseline.
+
+**Positive control.** Normalizing by a control that moves less than the nulls is
+worthless. The new control mutates a matched number of residues in a context
+chain, so the denominator is the score movement caused by a real sequence change
+of comparable size. Reported alongside the old CDR3-beta swap.
+
+**Scoring target.** The peptide span sits near the model's prior: median span
+pLL is -3.04 against ln(20) = 3.00 for a uniform prediction. Shifts of 0.05 nats
+on an essentially flat landscape cannot carry a headline. MHC_HEAVY is added as
+a target because it is a conserved protein the model predicts well, giving the
+measurement real dynamic range. All three targets are reported.
+
+Cost of this decision: the pre-registered operator set P1 to P5 is no longer the
+primary analysis. The report must present the original set, the defects found,
+and the redesign, rather than quietly shipping the new operators as if they had
+been the plan. The pre-registered gate thresholds are not changed.
+
+## 2026-10-10 - Confirmed non-defects, recorded so they are not re-investigated
+
+Batch composition and right-padding do not affect scores: token dropout's
+rescale divides by `attention_mask.sum(-1)`, not the padded width, and batches
+of 1, 16 and reversed order agree to 9.5e-7. Operator applicability exclusions
+stay index-aligned between numerator and denominator, and the bootstrap
+resamples every array on shared indices. `chain_slices` follows a chain to its
+new slot after permutation, and the scored span length is invariant across the
+null operators.

@@ -9,6 +9,7 @@ from cla.eval.metrics import (
     delta_auroc,
     length_stratified_nsi,
     nsi,
+    nsi_control,
     rank_stability,
 )
 
@@ -26,6 +27,21 @@ def test_nsi_worked_example():
 def test_nsi_zero_separation_raises():
     with pytest.raises(ValueError, match="undefined"):
         nsi([1.0, 2.0], [1.5, 2.5], [-5, -5, -5], [-5, -5, -5])
+
+
+def test_nsi_control_worked_example_and_paired_bootstrap():
+    original = np.array([-10.0, -20.0, -30.0, -40.0])
+    null = np.array([-11.0, -20.5, -31.0, -40.5])  # |diffs| 1, 0.5, 1, 0.5 -> median 0.75
+    control = np.array([-13.0, -22.0, -37.0, -48.0])  # |diffs| 3, 2, 7, 8 -> median 5
+    assert nsi_control(original, null, control) == pytest.approx(0.15)
+    point, lo, hi = bootstrap_ci(nsi_control, original, null, control, n_boot=200)
+    assert point == pytest.approx(0.15)
+    assert lo <= hi
+
+
+def test_nsi_control_zero_denominator_raises():
+    with pytest.raises(ValueError, match="undefined"):
+        nsi_control([1.0, 2.0], [1.5, 2.5], [1.0, 2.0])
 
 
 def test_rank_stability_reversed_ranking():
