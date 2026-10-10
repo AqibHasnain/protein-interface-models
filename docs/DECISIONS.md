@@ -229,3 +229,46 @@ stay index-aligned between numerator and denominator, and the bootstrap
 resamples every array on shared indices. `chain_slices` follows a chain to its
 new slot after permutation, and the scored span length is invariant across the
 null operators.
+
+## 2026-10-10 - The premise survives: geometry moves scores more than real mutations do
+
+A 60-example probe at 35M, median rendered length 319, measuring median absolute
+change in span score against a gap-0 baseline:
+
+| Perturbation | PEPTIDE | TCRB | MHC_HEAVY |
+|---|---|---|---|
+| G1 gap 0 (sanity) | 0.000 | 0.000 | 0.000 |
+| G1 gap 5 | 0.129 | 0.033 | 0.460 |
+| G1 gap 25 | 0.097 | 0.036 | 1.435 |
+| G2 gap 25 | 0.084 | 0.035 | 0.153 |
+| C1 1 mutation | 0.011 | 0.002 | 0.039 |
+| C1 5 mutations | 0.039 | 0.010 | 0.149 |
+| C1 20 mutations | 0.084 | 0.018 | 0.560 |
+
+A position-index gap of 5, inserted with `input_ids` bitwise unchanged, moves
+the peptide score further than twenty real amino-acid substitutions. The gap-0
+row is exactly zero, which is the sanity check that the operator is inert when
+it should be.
+
+This is H1 restated in the cleanest available form, and it is the Phase 1
+headline. Gate G1 is not STOP.
+
+Three constraints the full audit must respect.
+
+**Gaps stay in distribution.** ESM-2's trained position range is 1026. A gap of
+200 across four chain breaks pushes indices to about 1124, so the gap-200
+numbers measure extrapolation past the trained range rather than relative
+offset. Gaps are capped at 150, and anything beyond is reported separately and
+labelled out of distribution.
+
+**MHC_HEAVY is diagnostic, not headline.** Its span pLL is -5.619 against a
+uniform-prior reference of -3.00, so masking all 180 residues at once leaves the
+model predicting worse than chance. Its large apparent gap sensitivity is partly
+a measure of how badly the estimator degrades on a fully masked long span.
+PEPTIDE (-3.119) and TCRB (-2.916) sit near the prior and carry the headline.
+
+**The P1 baseline has to match.** `symmetric_ends` renders a separator run of
+length `separator_tokens`, which is now 0 by default, so it removes the
+special-token adjacency confound only when at least one separator is rendered.
+P1 and its baseline are both rendered with one separator and symmetric ends, or
+the confound returns.

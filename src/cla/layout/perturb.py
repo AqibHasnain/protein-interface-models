@@ -7,6 +7,9 @@ every change to serialization and is splatted into `render_naive(spec', tok,
 written down", so the null claim for an operator reduces to a check on
 `spec.identity` plus the knowledge that overrides touch only separators.
 
+The geometry operators G1 and G2 live in `cla.layout.geometry` because they act on a
+rendered layout. C1 is a content-changing positive control with controllable magnitude.
+
 P5 needs a sequence pool, so it takes a keyword `pool`; bind it with
 `functools.partial(resample_chain_length, pool=pool)` before calling.
 """
@@ -18,7 +21,7 @@ from typing import Any
 
 import numpy as np
 
-from cla.layout.spec import Chain, ChainSpec, Role
+from cla.layout.spec import AA_ALPHABET, Chain, ChainSpec, Role
 
 Overrides = dict[str, Any]
 Operator = Callable[..., tuple[ChainSpec, Overrides]]
@@ -35,7 +38,9 @@ def permute_chain_order(spec: ChainSpec, rng: np.random.Generator) -> tuple[Chai
     """Reorder chains. Null because a complex is a set of chains.
 
     Chain order in a physical complex is undefined; any order describes the same
-    molecule, so `identity` is unchanged. The permutation is never the identity
+    molecule, so `identity` is unchanged. Rendering uses `symmetric_ends` so that no
+    chain gains or loses adjacency to `<cls>` or `<eos>` by moving slots; this only
+    has an effect when `separator_tokens > 0`. The permutation is never the identity
     permutation, so a model that is order-invariant and one that is not are
     distinguishable. Specs with identical chains in different slots can still
     render identically; those cases are unavoidable and harmless.
@@ -48,18 +53,21 @@ def permute_chain_order(spec: ChainSpec, rng: np.random.Generator) -> tuple[Chai
         order = tuple(int(i) for i in rng.permutation(n))
         if order != identity:
             break
-    return spec.reordered(order), {}
+    return spec.reordered(order), {"symmetric_ends": True}
 
 
-def vary_separator_count(spec: ChainSpec, rng: np.random.Generator) -> tuple[ChainSpec, Overrides]:
-    """Change the number of separator tokens between chains. Null because separators
-    encode nothing biological.
+def vary_separator_count(
+    spec: ChainSpec, rng: np.random.Generator, *, baseline: int = 0
+) -> tuple[ChainSpec, Overrides]:
+    """Change the number of separator tokens between chains. Null with respect to the
+    biology, but not to the model: separators are content tokens, so this measures
+    token insertion, not position geometry (see `cla.layout.geometry` for that).
 
-    The chains are untouched. Only the inter-chain gap, and hence every
-    downstream absolute position and inter-chain distance, changes. Choices are
-    0, 1, 5, 25.
+    The draw excludes `baseline`, the count used to render the original, so the
+    result never reproduces the original layout. Choices are 0, 1, 5, 25.
     """
-    return spec, {"separator_tokens": int(rng.choice(SEPARATOR_CHOICES))}
+    choices = [c for c in SEPARATOR_CHOICES if c != baseline]
+    return spec, {"separator_tokens": int(rng.choice(choices))}
 
 
 def restore_native_flank(spec: ChainSpec, rng: np.random.Generator) -> tuple[ChainSpec, Overrides]:
@@ -129,10 +137,51 @@ def resample_chain_length(
     return spec.with_chains(chains), {}
 
 
+def mutate_context_residues(
+    spec: ChainSpec,
+    rng: np.random.Generator,
+    *,
+    n_mutations: int,
+    target_role: Role | str,
+) -> tuple[ChainSpec, Overrides]:
+    """POSITIVE CONTROL: substitute `n_mutations` residues in chains other than the
+    scored chain, each to a different amino acid.
+
+    Positions are drawn uniformly without replacement over all residues of the
+    non-target chains. The result is a real sequence change of controllable
+    magnitude, which gives the audit a denominator for "how far does the score
+    move when the context actually changes".
+    """
+    target = Role(target_role)
+    others = [i for i, c in enumerate(spec.chains) if c.role is not target]
+    sites = [(i, j) for i in others for j in range(len(spec.chains[i]))]
+    if n_mutations > len(sites):
+        raise OperatorNotApplicable(f"only {len(sites)} context residues for {n_mutations} edits")
+    chosen = rng.choice(len(sites), size=n_mutations, replace=False)
+    edits: dict[int, dict[int, str]] = {}
+    for k in chosen:
+        i, j = sites[int(k)]
+        old = spec.chains[i].sequence[j]
+        new = str(rng.choice(sorted(AA_ALPHABET - {old})))
+        edits.setdefault(i, {})[j] = new
+    chains = []
+    for i, c in enumerate(spec.chains):
+        seq = list(c.sequence)
+        for j, aa in edits.get(i, {}).items():
+            seq[j] = aa
+        chains.append(Chain(c.role, "".join(seq)))
+    return spec.with_chains(tuple(chains)), {}
+
+
 OPERATORS: dict[str, Operator] = {
     "P1": permute_chain_order,
     "P2": vary_separator_count,
     "P3": restore_native_flank,
     "P4": insert_neutral_spacer,
     "P5": resample_chain_length,
+}
+
+CONTROLS: dict[str, Operator] = {
+    "C1": mutate_context_residues,
+    "C2": resample_chain_length,
 }
