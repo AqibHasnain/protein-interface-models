@@ -240,3 +240,185 @@
 14:34:54 INFO cla.eval.audit: start MHC_HEAVY td=True G@0 n=1000
 14:36:30 INFO cla.eval.audit: done MHC_HEAVY td=True G@0 in 96s
 14:36:30 INFO cla.eval.audit: start MHC_HEAVY td=True G1@1 n=1000
+14:38:05 INFO cla.eval.audit: done MHC_HEAVY td=True G1@1 in 95s
+14:38:05 INFO cla.eval.audit: start MHC_HEAVY td=True G1@2 n=1000
+14:39:39 INFO cla.eval.audit: done MHC_HEAVY td=True G1@2 in 95s
+14:39:39 INFO cla.eval.audit: start MHC_HEAVY td=True G1@5 n=1000
+14:41:14 INFO cla.eval.audit: done MHC_HEAVY td=True G1@5 in 95s
+14:41:14 INFO cla.eval.audit: start MHC_HEAVY td=True G1@10 n=1000
+14:42:49 INFO cla.eval.audit: done MHC_HEAVY td=True G1@10 in 95s
+14:42:49 INFO cla.eval.audit: start MHC_HEAVY td=True G1@25 n=1000
+14:44:24 INFO cla.eval.audit: done MHC_HEAVY td=True G1@25 in 95s
+14:44:24 INFO cla.eval.audit: start MHC_HEAVY td=True G1@50 n=1000
+14:45:59 INFO cla.eval.audit: done MHC_HEAVY td=True G1@50 in 95s
+14:45:59 INFO cla.eval.audit: start MHC_HEAVY td=True G1@100 n=1000
+14:47:33 INFO cla.eval.audit: done MHC_HEAVY td=True G1@100 in 95s
+14:47:33 INFO cla.eval.audit: start MHC_HEAVY td=True G1@150 n=1000
+14:49:08 INFO cla.eval.audit: done MHC_HEAVY td=True G1@150 in 95s
+14:49:08 INFO cla.eval.audit: start MHC_HEAVY td=True G1@400 n=1000
+14:50:44 INFO cla.eval.audit: done MHC_HEAVY td=True G1@400 in 95s
+14:50:44 INFO cla.eval.audit: start MHC_HEAVY td=True G2@1 n=1000
+14:52:19 INFO cla.eval.audit: done MHC_HEAVY td=True G2@1 in 95s
+14:52:19 INFO cla.eval.audit: start MHC_HEAVY td=True G2@2 n=1000
+14:53:54 INFO cla.eval.audit: done MHC_HEAVY td=True G2@2 in 95s
+14:53:54 INFO cla.eval.audit: start MHC_HEAVY td=True G2@5 n=1000
+14:55:29 INFO cla.eval.audit: done MHC_HEAVY td=True G2@5 in 95s
+14:55:29 INFO cla.eval.audit: start MHC_HEAVY td=True G2@10 n=1000
+14:57:04 INFO cla.eval.audit: done MHC_HEAVY td=True G2@10 in 95s
+14:57:04 INFO cla.eval.audit: start MHC_HEAVY td=True G2@25 n=1000
+14:58:39 INFO cla.eval.audit: done MHC_HEAVY td=True G2@25 in 95s
+14:58:39 INFO cla.eval.audit: start MHC_HEAVY td=True G2@50 n=1000
+15:00:14 INFO cla.eval.audit: done MHC_HEAVY td=True G2@50 in 95s
+15:00:14 INFO cla.eval.audit: start MHC_HEAVY td=True G2@100 n=1000
+15:01:49 INFO cla.eval.audit: done MHC_HEAVY td=True G2@100 in 95s
+15:01:49 INFO cla.eval.audit: start MHC_HEAVY td=True G2@150 n=1000
+15:03:25 INFO cla.eval.audit: done MHC_HEAVY td=True G2@150 in 95s
+15:03:25 INFO cla.eval.audit: start MHC_HEAVY td=True G2@400 n=1000
+15:05:00 INFO cla.eval.audit: done MHC_HEAVY td=True G2@400 in 95s
+15:08:12 INFO cla.eval.audit: start MHC_HEAVY td=False P1 n=2000
+15:11:25 INFO cla.eval.audit: done MHC_HEAVY td=False P1 in 193s
+15:11:25 INFO cla.eval.audit: start MHC_HEAVY td=False P2 n=2000
+15:15:53 INFO cla.eval.audit: done MHC_HEAVY td=False P2 in 268s
+15:15:53 INFO cla.eval.audit: start MHC_HEAVY td=False P4 n=2000
+15:19:21 INFO cla.eval.audit: done MHC_HEAVY td=False P4 in 208s
+15:19:21 INFO cla.eval.audit: start MHC_HEAVY td=False sweep:0 n=2000
+15:22:30 INFO cla.eval.audit: done MHC_HEAVY td=False sweep:0 in 188s
+15:22:30 INFO cla.eval.audit: start MHC_HEAVY td=False sweep:5 n=2000
+15:25:57 INFO cla.eval.audit: done MHC_HEAVY td=False sweep:5 in 208s
+15:25:57 INFO cla.eval.audit: start MHC_HEAVY td=False sweep:25 n=2000
+15:30:41 INFO cla.eval.audit: done MHC_HEAVY td=False sweep:25 in 284s
+15:30:41 INFO cla.eval.audit: start MHC_HEAVY td=False C1:5 n=1000
+15:32:18 INFO cla.eval.audit: done MHC_HEAVY td=False C1:5 in 97s
+15:32:18 INFO cla.eval.audit: start MHC_HEAVY td=False C1:20 n=1000
+15:33:55 INFO cla.eval.audit: done MHC_HEAVY td=False C1:20 in 97s
+15:33:55 INFO cla.eval.audit: start MHC_HEAVY td=False C2 n=1000
+15:35:32 INFO cla.eval.audit: done MHC_HEAVY td=False C2 in 97s
+15:35:32 INFO cla.eval.audit: start MHC_HEAVY td=False G@0 n=1000
+15:37:09 INFO cla.eval.audit: done MHC_HEAVY td=False G@0 in 97s
+15:37:09 INFO cla.eval.audit: start MHC_HEAVY td=False G1@1 n=1000
+15:38:44 INFO cla.eval.audit: done MHC_HEAVY td=False G1@1 in 95s
+15:38:44 INFO cla.eval.audit: start MHC_HEAVY td=False G1@2 n=1000
+15:40:20 INFO cla.eval.audit: done MHC_HEAVY td=False G1@2 in 96s
+15:40:20 INFO cla.eval.audit: start MHC_HEAVY td=False G1@5 n=1000
+15:41:56 INFO cla.eval.audit: done MHC_HEAVY td=False G1@5 in 96s
+15:41:56 INFO cla.eval.audit: start MHC_HEAVY td=False G1@10 n=1000
+15:43:32 INFO cla.eval.audit: done MHC_HEAVY td=False G1@10 in 96s
+15:43:32 INFO cla.eval.audit: start MHC_HEAVY td=False G1@25 n=1000
+15:45:07 INFO cla.eval.audit: done MHC_HEAVY td=False G1@25 in 96s
+15:45:07 INFO cla.eval.audit: start MHC_HEAVY td=False G1@50 n=1000
+15:46:43 INFO cla.eval.audit: done MHC_HEAVY td=False G1@50 in 96s
+15:46:43 INFO cla.eval.audit: start MHC_HEAVY td=False G1@100 n=1000
+15:48:19 INFO cla.eval.audit: done MHC_HEAVY td=False G1@100 in 96s
+15:48:19 INFO cla.eval.audit: start MHC_HEAVY td=False G1@150 n=1000
+15:49:55 INFO cla.eval.audit: done MHC_HEAVY td=False G1@150 in 96s
+15:49:55 INFO cla.eval.audit: start MHC_HEAVY td=False G1@400 n=1000
+15:51:31 INFO cla.eval.audit: done MHC_HEAVY td=False G1@400 in 96s
+15:51:31 INFO cla.eval.audit: start MHC_HEAVY td=False G2@1 n=1000
+15:53:06 INFO cla.eval.audit: done MHC_HEAVY td=False G2@1 in 96s
+15:53:06 INFO cla.eval.audit: start MHC_HEAVY td=False G2@2 n=1000
+15:54:42 INFO cla.eval.audit: done MHC_HEAVY td=False G2@2 in 96s
+15:54:42 INFO cla.eval.audit: start MHC_HEAVY td=False G2@5 n=1000
+15:56:18 INFO cla.eval.audit: done MHC_HEAVY td=False G2@5 in 96s
+15:56:18 INFO cla.eval.audit: start MHC_HEAVY td=False G2@10 n=1000
+15:57:54 INFO cla.eval.audit: done MHC_HEAVY td=False G2@10 in 96s
+15:57:54 INFO cla.eval.audit: start MHC_HEAVY td=False G2@25 n=1000
+15:59:30 INFO cla.eval.audit: done MHC_HEAVY td=False G2@25 in 96s
+15:59:30 INFO cla.eval.audit: start MHC_HEAVY td=False G2@50 n=1000
+16:01:06 INFO cla.eval.audit: done MHC_HEAVY td=False G2@50 in 96s
+16:01:06 INFO cla.eval.audit: start MHC_HEAVY td=False G2@100 n=1000
+16:02:42 INFO cla.eval.audit: done MHC_HEAVY td=False G2@100 in 96s
+16:02:42 INFO cla.eval.audit: start MHC_HEAVY td=False G2@150 n=1000
+16:04:18 INFO cla.eval.audit: done MHC_HEAVY td=False G2@150 in 96s
+16:04:18 INFO cla.eval.audit: start MHC_HEAVY td=False G2@400 n=1000
+16:05:55 INFO cla.eval.audit: done MHC_HEAVY td=False G2@400 in 97s
+
+== audit-esm2-150m (150M) ==
+examples scored: 2000 (1000 positives, 1000 decoys; shards {'test_allele': 500, 'test_epitope': 500, 'train': 500, 'val': 500})
+
+-- target PEPTIDE (estimator span_pll, median pLL -2.957 vs prior -2.996) --
+discrimination dropout on: binder -2.9626 decoy -2.9551 AUROC 0.500 [0.475, 0.526]
+discrimination dropout off: binder -2.9408 decoy -2.9388 AUROC 0.501 [0.476, 0.527]
+C1 denominator (dropout on): 0.0346 nats
+op     gap   |delta|           GSI [95% CI] on   GSI off
+--------------------------------------------------------
+G1       0    0.0000      0.000 [0.000, 0.000]     0.000
+G1       1    0.0272      0.786 [0.696, 0.879]     0.782
+G1       2    0.0475      1.373 [1.251, 1.508]     1.301
+G1       5    0.0625      1.808 [1.677, 1.959]     1.790
+G1      10    0.0721      2.084 [1.931, 2.275]     2.107
+G1      25    0.0865      2.500 [2.306, 2.710]     2.426
+G1      50    0.0842      2.434 [2.199, 2.683]     2.377
+G1     100    0.0724      2.094 [1.906, 2.286]     1.757
+G1     150    0.0494      1.430 [1.307, 1.620]     2.299
+  G1 dose-response shape (dropout on): step
+G2       0    0.0000      0.000 [0.000, 0.000]     0.000
+G2       1    0.0174      0.503 [0.458, 0.561]     0.446
+G2       2    0.0331      0.956 [0.887, 1.046]     0.823
+G2       5    0.0513      1.482 [1.352, 1.648]     1.488
+G2      10    0.0606      1.752 [1.592, 1.932]     1.796
+G2      25    0.0451      1.303 [1.176, 1.495]     1.285
+G2      50    0.0613      1.773 [1.590, 1.990]     1.406
+G2     100    0.0882      2.549 [2.330, 2.814]     4.012
+G2     150    0.0738      2.135 [1.944, 2.424]    45.181
+  G2 dose-response shape (dropout on): mixed
+
+-- target TCRB (estimator span_pll, median pLL -2.892 vs prior -2.996) --
+discrimination dropout on: binder -2.8907 decoy -2.8945 AUROC 0.519 [0.494, 0.545]
+discrimination dropout off: binder -2.8852 decoy -2.8918 AUROC 0.530 [0.505, 0.556]
+C1 denominator (dropout on): 0.0160 nats
+op     gap   |delta|           GSI [95% CI] on   GSI off
+--------------------------------------------------------
+G1       0    0.0000      0.000 [0.000, 0.000]     0.000
+G1       1    0.0087      0.545 [0.492, 0.599]     0.754
+G1       2    0.0129      0.808 [0.746, 0.912]     0.807
+G1       5    0.0252      1.576 [1.417, 1.744]     1.480
+G1      10    0.0302      1.887 [1.708, 2.130]     1.943
+G1      25    0.0388      2.422 [2.207, 2.677]     3.519
+G1      50    0.0532      3.321 [3.026, 3.637]    10.047
+G1     100    0.0567      3.539 [3.224, 3.902]    15.776
+G1     150    0.0594      3.708 [3.384, 4.087]    24.473
+  G1 dose-response shape (dropout on): graded
+G2       0    0.0000      0.000 [0.000, 0.000]     0.000
+G2       1    0.0061      0.383 [0.347, 0.426]     0.378
+G2       2    0.0097      0.606 [0.549, 0.663]     0.618
+G2       5    0.0150      0.935 [0.843, 1.048]     1.019
+G2      10    0.0219      1.367 [1.211, 1.520]     1.263
+G2      25    0.0321      2.007 [1.794, 2.290]     1.956
+G2      50    0.0352      2.199 [1.990, 2.492]     2.271
+G2     100    0.0381      2.380 [2.137, 2.668]     2.340
+G2     150    0.0374      2.336 [2.095, 2.674]     2.151
+  G2 dose-response shape (dropout on): graded
+
+-- target MHC_HEAVY (estimator windowed_span_pll, median pLL -2.368 vs prior -2.996) --
+discrimination dropout on: binder -2.3517 decoy -2.3822 AUROC 0.569 [0.544, 0.594]
+discrimination dropout off: binder -2.3244 decoy -2.3676 AUROC 0.616 [0.591, 0.640]
+C1 denominator (dropout on): 0.0446 nats
+op     gap   |delta|           GSI [95% CI] on   GSI off
+--------------------------------------------------------
+G1       0    0.0000      0.000 [0.000, 0.000]     0.000
+G1       1    0.0316      0.710 [0.643, 0.808]     0.525
+G1       2    0.0348      0.781 [0.709, 0.886]     1.054
+G1       5    0.1014      2.275 [2.062, 2.548]     3.052
+G1      10    0.2544      5.708 [5.249, 6.324]     6.699
+G1      25    0.3830      8.593 [7.891, 9.505]     9.640
+G1      50    0.5132   11.516 [10.588, 12.742]    13.548
+G1     100    0.4690    10.524 [9.670, 11.645]    18.139
+G1     150    0.5555   12.463 [11.455, 13.799]    19.928
+  G1 dose-response shape (dropout on): graded
+G2       0    0.0000      0.000 [0.000, 0.000]     0.000
+G2       1    0.0089      0.201 [0.173, 0.228]     0.254
+G2       2    0.0122      0.275 [0.238, 0.313]     0.243
+G2       5    0.0150      0.337 [0.302, 0.384]     0.324
+G2      10    0.0159      0.356 [0.315, 0.409]     0.319
+G2      25    0.0223      0.500 [0.447, 0.567]     0.457
+G2      50    0.0276      0.620 [0.563, 0.694]     0.455
+G2     100    0.0352      0.790 [0.715, 0.884]     0.643
+G2     150    0.0351      0.787 [0.708, 0.881]     0.630
+  G2 dose-response shape (dropout on): graded
+
+GSI gate (this model, dropout on): headline qualifies=True gaps [2, 5, 10, 25, 50, 100, 150]; all targets qualifies=True
+Gate G1 pre-registered [PEPTIDE] (dropout on): None NSI not computable for any null operator (denominator unresolved)
+Gate G1 pre-registered [TCRB] (dropout on): None NSI not computable for any null operator (denominator unresolved)
+Gate G1 pre-registered [MHC_HEAVY] (dropout on): AMBIGUOUS 
+
+wrote results/phase1/audit-esm2-150m/nsi.json

@@ -19,3 +19,4 @@ to 5 remain the route for Phase 2 training if it is ever run at 650M scale.
 |---|---|---|---|---|---|---|---|
 | 2026-10-10T18:00Z | local | Apple M4 Max (MPS) | 12 | $0.00 | 9f13500 | Download and smoke all three ESM-2 checkpoints | OK: 35M/150M/650M all forward on MPS; 650M single forward over 300 residues is 0.46 s |
 | 2026-10-10T13:40Z | local | Apple M4 Max (MPS) | 76 | $0.00 | 8039dab | Phase 1 audit, esm2_t12_35M, n=1000, 3 targets, dense gap sweep | Complete; nsi.json and summary.tsv written |
+| 2026-10-10T16:00Z | local | Apple M4 Max (MPS) | 183 | $0.00 | 9eec818 | Phase 1 audit, esm2_t30_150M, n=1000, 3 targets, dense gap sweep | Complete |

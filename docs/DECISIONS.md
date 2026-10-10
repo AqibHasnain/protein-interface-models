@@ -314,3 +314,31 @@ layout noise is comparable to or larger than the biological signal in a model
 whose score is weakly driven by both, not that layout noise is large in
 absolute terms. Any version of this result that quotes GSI without the
 denominator is misleading, so the report prints raw nats beside every ratio.
+
+## 2026-10-10 - Correction: the step finding does not replicate, and the artifact grows with scale
+
+The 150M run contradicts two things recorded from the 35M run. Both corrections
+stand; the earlier entry is left in place because this log is append-only.
+
+**The peptide G1 step is a 35M artifact.** At 35M, GSI was flat from gap 1
+onward (1.26, 1.35, 1.33, 1.09, 1.16, 1.20, 1.18, 1.17). At 150M the same curve
+rises and then falls (0.79, 1.37, 1.81, 2.08, 2.50, 2.43, 2.09, 1.43), peaking
+near gap 25. The earlier conclusion that the chain-break offset is a step
+function, and therefore that its magnitude is not worth tuning in Phase 2, is
+withdrawn. The offset must be swept, not fixed at the structure-model
+convention of 200.
+
+**The artifact gets worse with model size.** MHC_HEAVY under G1 at gap 150 goes
+from GSI 3.63 at 35M to 12.46 at 150M, and the gap-50 value from 2.16 to 11.52.
+TCRB under G1 rises similarly. Nothing in the audit predicted the direction, and
+the naive expectation would have been that a larger model handles layout better.
+
+That direction is the most consequential thing Phase 1 has produced. If it holds
+at 650M it means the omission does not wash out with scale, which is the
+assumption that would otherwise justify ignoring it. It also means the 650M
+number is load-bearing rather than a formality, so the reduced n=250 there is a
+real limitation and the report must say that the strongest claim rests on the
+smallest sample.
+
+Two scale points do not establish a trend. The report states this as a direction
+observed across two sizes with a third pending, not as scaling behaviour.
