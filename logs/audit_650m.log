@@ -192,3 +192,113 @@
 17:35:20 INFO cla.eval.audit: start MHC_HEAVY td=True G2@25 n=250
 17:37:26 INFO cla.eval.audit: done MHC_HEAVY td=True G2@25 in 125s
 17:37:26 INFO cla.eval.audit: start MHC_HEAVY td=True G2@100 n=250
+17:38:51 INFO cla.eval.audit: done MHC_HEAVY td=True G2@100 in 86s
+17:38:51 INFO cla.eval.audit: start MHC_HEAVY td=True G2@400 n=250
+17:40:14 INFO cla.eval.audit: done MHC_HEAVY td=True G2@400 in 82s
+17:43:01 INFO cla.eval.audit: start MHC_HEAVY td=False P1 n=500
+17:45:48 INFO cla.eval.audit: done MHC_HEAVY td=False P1 in 167s
+17:45:48 INFO cla.eval.audit: start MHC_HEAVY td=False P2 n=500
+17:49:46 INFO cla.eval.audit: done MHC_HEAVY td=False P2 in 238s
+17:49:46 INFO cla.eval.audit: start MHC_HEAVY td=False P4 n=500
+17:52:47 INFO cla.eval.audit: done MHC_HEAVY td=False P4 in 181s
+17:52:47 INFO cla.eval.audit: start MHC_HEAVY td=False sweep:0 n=500
+17:55:31 INFO cla.eval.audit: done MHC_HEAVY td=False sweep:0 in 163s
+17:55:31 INFO cla.eval.audit: start MHC_HEAVY td=False sweep:5 n=500
+17:58:33 INFO cla.eval.audit: done MHC_HEAVY td=False sweep:5 in 183s
+17:58:33 INFO cla.eval.audit: start MHC_HEAVY td=False sweep:25 n=500
+18:02:49 INFO cla.eval.audit: done MHC_HEAVY td=False sweep:25 in 255s
+18:02:49 INFO cla.eval.audit: start MHC_HEAVY td=False C1:5 n=250
+18:04:13 INFO cla.eval.audit: done MHC_HEAVY td=False C1:5 in 85s
+18:04:13 INFO cla.eval.audit: start MHC_HEAVY td=False C1:20 n=250
+18:05:38 INFO cla.eval.audit: done MHC_HEAVY td=False C1:20 in 84s
+18:05:38 INFO cla.eval.audit: start MHC_HEAVY td=False C2 n=250
+18:07:02 INFO cla.eval.audit: done MHC_HEAVY td=False C2 in 84s
+18:07:02 INFO cla.eval.audit: start MHC_HEAVY td=False G@0 n=250
+18:08:26 INFO cla.eval.audit: done MHC_HEAVY td=False G@0 in 84s
+18:08:26 INFO cla.eval.audit: start MHC_HEAVY td=False G1@1 n=250
+18:09:50 INFO cla.eval.audit: done MHC_HEAVY td=False G1@1 in 84s
+18:09:50 INFO cla.eval.audit: start MHC_HEAVY td=False G1@5 n=250
+18:11:14 INFO cla.eval.audit: done MHC_HEAVY td=False G1@5 in 84s
+18:11:14 INFO cla.eval.audit: start MHC_HEAVY td=False G1@25 n=250
+18:12:38 INFO cla.eval.audit: done MHC_HEAVY td=False G1@25 in 84s
+18:12:38 INFO cla.eval.audit: start MHC_HEAVY td=False G1@100 n=250
+18:14:02 INFO cla.eval.audit: done MHC_HEAVY td=False G1@100 in 84s
+18:14:02 INFO cla.eval.audit: start MHC_HEAVY td=False G1@400 n=250
+18:15:26 INFO cla.eval.audit: done MHC_HEAVY td=False G1@400 in 84s
+18:15:26 INFO cla.eval.audit: start MHC_HEAVY td=False G2@1 n=250
+18:16:49 INFO cla.eval.audit: done MHC_HEAVY td=False G2@1 in 84s
+18:16:49 INFO cla.eval.audit: start MHC_HEAVY td=False G2@5 n=250
+18:18:13 INFO cla.eval.audit: done MHC_HEAVY td=False G2@5 in 84s
+18:18:13 INFO cla.eval.audit: start MHC_HEAVY td=False G2@25 n=250
+18:19:37 INFO cla.eval.audit: done MHC_HEAVY td=False G2@25 in 84s
+18:19:37 INFO cla.eval.audit: start MHC_HEAVY td=False G2@100 n=250
+18:21:00 INFO cla.eval.audit: done MHC_HEAVY td=False G2@100 in 83s
+18:21:00 INFO cla.eval.audit: start MHC_HEAVY td=False G2@400 n=250
+18:22:23 INFO cla.eval.audit: done MHC_HEAVY td=False G2@400 in 83s
+
+== audit-esm2-650m (650M) ==
+examples scored: 500 (250 positives, 250 decoys; shards {'test_allele': 126, 'test_epitope': 126, 'train': 124, 'val': 124})
+
+-- target PEPTIDE (estimator span_pll, median pLL -2.946 vs prior -2.996) --
+discrimination dropout on: binder -2.9403 decoy -2.9492 AUROC 0.490 [0.439, 0.540]
+discrimination dropout off: binder -2.9441 decoy -2.9374 AUROC 0.499 [0.448, 0.549]
+C1 denominator (dropout on): 0.0250 nats
+op     gap   |delta|           GSI [95% CI] on   GSI off
+--------------------------------------------------------
+G1       0    0.0000      0.000 [0.000, 0.000]     0.000
+G1       1    0.0566      2.259 [1.927, 2.537]     2.300
+G1       5    0.0794      3.169 [2.708, 3.535]     2.666
+G1      25    0.0386      1.543 [1.278, 1.736]     1.348
+G1     100    0.0798      3.186 [2.717, 3.635]     3.064
+  G1 dose-response shape (dropout on): step
+G2       0    0.0000      0.000 [0.000, 0.000]     0.000
+G2       1    0.0106      0.422 [0.342, 0.497]     0.442
+G2       5    0.0155      0.618 [0.520, 0.716]     0.811
+G2      25    0.0467      1.863 [1.445, 2.234]     2.568
+G2     100    0.0314      1.252 [1.015, 1.552]     1.885
+  G2 dose-response shape (dropout on): mixed
+
+-- target TCRB (estimator span_pll, median pLL -2.907 vs prior -2.996) --
+discrimination dropout on: binder -2.9005 decoy -2.9100 AUROC 0.521 [0.470, 0.571]
+discrimination dropout off: binder -2.8907 decoy -2.8975 AUROC 0.510 [0.459, 0.561]
+C1 denominator (dropout on): 0.0162 nats
+op     gap   |delta|           GSI [95% CI] on   GSI off
+--------------------------------------------------------
+G1       0    0.0000      0.000 [0.000, 0.000]     0.000
+G1       1    0.0149      0.918 [0.697, 1.105]     1.034
+G1       5    0.0226      1.397 [1.044, 1.693]     1.968
+G1      25    0.0309      1.908 [1.496, 2.248]     3.031
+G1     100    0.0465      2.873 [2.223, 3.157]     4.263
+  G1 dose-response shape (dropout on): mixed
+G2       0    0.0000      0.000 [0.000, 0.000]     0.000
+G2       1    0.0084      0.517 [0.393, 0.635]     0.689
+G2       5    0.0223      1.379 [1.035, 1.749]     1.528
+G2      25    0.0260      1.606 [1.234, 1.862]     2.735
+G2     100    0.0276      1.701 [1.277, 1.960]     4.785
+  G2 dose-response shape (dropout on): mixed
+
+-- target MHC_HEAVY (estimator windowed_span_pll, median pLL -1.979 vs prior -2.996) --
+discrimination dropout on: binder -1.9826 decoy -1.9764 AUROC 0.477 [0.426, 0.527]
+discrimination dropout off: binder -1.9527 decoy -1.9508 AUROC 0.499 [0.449, 0.550]
+C1 denominator (dropout on): 0.0356 nats
+op     gap   |delta|           GSI [95% CI] on   GSI off
+--------------------------------------------------------
+G1       0    0.0000      0.000 [0.000, 0.000]     0.000
+G1       1    0.0297      0.836 [0.631, 1.153]     0.828
+G1       5    0.0657      1.847 [1.647, 2.217]     0.801
+G1      25    0.1716      4.827 [4.240, 5.771]     4.551
+G1     100    0.1806      5.079 [4.416, 6.045]     0.573
+  G1 dose-response shape (dropout on): graded
+G2       0    0.0000      0.000 [0.000, 0.000]     0.000
+G2       1    0.0110      0.311 [0.255, 0.386]     0.246
+G2       5    0.0136      0.382 [0.313, 0.476]     0.330
+G2      25    0.0116      0.328 [0.252, 0.425]     0.177
+G2     100    0.0119      0.336 [0.262, 0.424]     0.464
+  G2 dose-response shape (dropout on): step
+
+GSI gate (this model, dropout on): headline qualifies=True gaps [1, 5, 25, 100]; all targets qualifies=True
+Gate G1 pre-registered [PEPTIDE] (dropout on): None NSI not computable for any null operator (denominator unresolved)
+Gate G1 pre-registered [TCRB] (dropout on): None NSI not computable for any null operator (denominator unresolved)
+Gate G1 pre-registered [MHC_HEAVY] (dropout on): None NSI not computable for any null operator (denominator unresolved)
+
+wrote results/phase1/audit-esm2-650m/nsi.json

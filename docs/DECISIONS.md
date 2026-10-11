@@ -438,3 +438,41 @@ Anyone proposing to fix chain layout in a concatenation model should measure
 context gain first. If it is zero, the layout fix addresses an artifact in a
 model that is not using the chains anyway, and the honest move is to fix that
 instead.
+
+## 2026-10-10 - 650M admits a second usable point, and layout sensitivity falls with scale
+
+The windowed MHC_HEAVY estimator by model, against the uniform prior of -2.996:
+35M -2.937 (fails the 0.25 margin), 150M -2.392 (passes), 650M -1.831 (passes,
+by the widest margin). Two admissible model sizes rather than one.
+
+MHC_HEAVY under G1, token dropout on, at matched gaps:
+
+| Gap | 150M GSI | 150M raw nats | 650M GSI | 650M raw nats |
+|---|---|---|---|---|
+| 1 | 0.71 | 0.032 | 0.84 | 0.030 |
+| 5 | 2.28 | 0.101 | 1.85 | 0.066 |
+| 25 | 8.59 | 0.383 | 4.83 | 0.172 |
+| 100 | 10.52 | 0.469 | 5.08 | 0.181 |
+
+**Layout sensitivity decreases with model size.** Across the two admissible
+points it roughly halves, in the ratio and in absolute nats alike. This is the
+opposite of the direction recorded earlier from 35M and 150M, which compared an
+inadmissible estimator against an admissible one and has already been withdrawn.
+
+The effect does not vanish. At 650M a content-free position-index change still
+moves the score about five times as far as twenty real substitutions. The
+defensible statement is that scale attenuates the artifact without removing it,
+established on two points, which is a direction and not a scaling law.
+
+## 2026-10-10 - The GSI gate reads PROCEED, but not for the reason the driver reports
+
+`aggregate.py` returns PROCEED on PEPTIDE and TCRB across all three models.
+Those two targets fail the estimator sanity check at every size, so a gate
+resting on them rests on scores that carry almost no information.
+
+The gate is nonetheless PROCEED, on the admissible evidence alone: MHC_HEAVY at
+150M and 650M, where the estimator passes, GSI runs from 4.83 to 10.52 at gaps
+25 and 100, and every CI lower bound sits far above the 0.5 requirement.
+
+The report states the verdict together with the subset it rests on. A gate
+passed on inadmissible targets would have been failed by its own criteria.
