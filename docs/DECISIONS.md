@@ -569,3 +569,26 @@ MHC_HEAVY and G1 only, at 150M and 650M, reporting per-allele GSI so
 heterogeneity is visible rather than averaged away. The report states the
 headline at whatever strength that run supports, and reports the per-allele
 spread regardless of which way it comes out.
+
+## 2026-10-10 - The headline generalizes across MHC alleles
+
+Allele-balanced resampling (51 distinct alleles, capped at 27 examples each,
+n=610) raises Kish's effective sample size from 1.92 to 26.86. MHC_HEAVY, G1,
+150M, token dropout on:
+
+| Gap | Balanced GSI | Concentrated GSI |
+|---|---|---|
+| 0 | 0.00 | 0.00 |
+| 1 | 0.50 [0.43, 0.59] | 0.71 [0.68, 0.92] |
+| 5 | 1.79 [1.58, 2.04] | 2.28 [1.81, 2.96] |
+| 25 | 6.96 [6.18, 7.85] | 8.59 [6.77, 9.40] |
+| 100 | 11.71 [10.39, 13.19] | 10.52 [9.78, 16.11] |
+
+The two samples agree. The effect is not a property of HLA-A*02:01, which had
+been the live alternative explanation while the effective sample was two
+alleles. Gap 0 is exactly 0.0, and gap 1 stays below 1.0, consistent with the
+withdrawal of the small-gap claims.
+
+This is the last threat to the Phase 1 headline that the available data can
+address. The 650M balanced run is still in progress and will be added when it
+completes; the 150M result is what the claim rests on.
