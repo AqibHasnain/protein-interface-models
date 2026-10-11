@@ -684,3 +684,63 @@ the arm has no in-distribution examples at all. Offset 100 already loses the
 gap-100 cell for the same reason. Any chain-break offset for a 5-chain complex
 on a 1026-position backbone has to be roughly 50 or below, which is a constraint
 the plan's default would have violated silently.
+
+## 2026-10-10 - The motivating nuisance does not occur at natural chain-length scales
+
+This is the most consequential Phase 2 result and it qualifies the whole
+project. H1's motivating example is that a CDR3-beta three residues longer
+shifts every downstream cross-chain offset by three. Tested directly, on
+complexes matched for allele and peptide and differing only in CDR3-beta
+length, the baseline shows no length-attributable effect.
+
+A0 sensitivity is 0.0039 nats per residue [0.0025, 0.0053]. Against a null with
+lengths shuffled within each set, the excess is 0.0003 [-0.0013, 0.0018]. The
+interval contains zero. The measured slope is within-set variation driven by TCR
+content, mostly CDR3-alpha, which no positional scheme can remove. Every arm's
+ratio interval against A0 contains 1 on the primary sample.
+
+**This is consistent with Phase 1, not a contradiction.** Phase 1 measured GSI
+against injected gaps of 1 to 150 and found the effect large from gap 25 upward
+(GSI 7 to 12) and at or below 1.8 at gaps of 1 to 5. Natural CDR3-beta length
+varies by a median of 3 to 4 residues within a matched set, which corresponds to
+the small-gap regime where Phase 1 already showed the effect is weak. The
+artifact is real and large when the offset is large. Real receptors do not
+produce offsets that large.
+
+**Consequence for the project's framing.** The Phase 1 headline stands as
+measured: ESM-2 is strongly sensitive to cross-chain position offsets. The
+practical motivation for fixing it is much weaker than H1 assumed, because the
+naturally occurring perturbation sits in the regime where the model is close to
+insensitive. A reader deciding whether to adopt a chain-aware positional module
+on this evidence should decline.
+
+The caveat that keeps this from being final: TCR chains here are CDR3 loops
+only, so length variation is a few residues. Full variable domains vary far
+more, and a model concatenating full chains would see larger offset shifts. That
+is a reason to retest with full-length chains, not a reason to discount this
+result, and it was already recorded as a limitation before this measurement.
+
+## 2026-10-10 - Permutation sensitivity does fall, at a cost, and A2 is near-circular again
+
+Chain order permutation reorders tokens, so the module cannot erase it by
+construction in the way it erased the injected gap.
+
+| Arm | Median abs score change | Ratio vs A0 | Usable |
+|---|---|---|---|
+| A0 | 0.561 [0.530, 0.590] | 1 | yes |
+| A2 reset | 0.0023 [0.0020, 0.0026] | 0.004 | no |
+| A3 offset 25 | 0.278 [0.251, 0.300] | 0.49 | yes |
+| A3 offset 50 | 0.114 [0.104, 0.130] | 0.20 | no |
+| A2+A3 offset 25 | 0.428 [0.403, 0.457] | 0.76 | no |
+| A2+A3 offset 50 | 0.111 [0.099, 0.131] | 0.20 | no |
+
+The reduction is real: a permutation moves the baseline score by 0.56 nats and
+every arm reduces that.
+
+Two qualifications. A2's near-zero is close to circular for the same reason as
+before: with per-chain reset a permuted layout presents the model with the same
+(token, position) multiset, so near-invariance follows from the construction
+rather than from anything about attention. And only A0 and A3 at offset 25 clear
+the 0.25 usability bar. The arms with the largest reductions are the ones that
+have degraded into unusable scorers, which is the tension that training is
+supposed to resolve.

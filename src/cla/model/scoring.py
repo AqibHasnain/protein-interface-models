@@ -11,7 +11,8 @@ Position handling in HuggingFace ESM-2 (transformers 5.x, `esm2_*` checkpoints h
 * Rotary attention depends only on position differences, so shifting all ids by a constant is
   a no-op while per-chain offsets (gaps between chains) change cross-chain attention.
 * `chain_ids` has no entry point in the model; it is carried on the rendered layout for
-  downstream interventions and ignored here.
+  downstream interventions. It is passed to the model as a `chain_ids` keyword only when the
+  model sets `takes_chain_ids`, which a wrapper that binds the chain-identity embedding does.
 
 Long spans are scored with `windowed_span_pll`, which masks a short window at a time so local
 context stays visible.
@@ -84,6 +85,7 @@ def _masked_logprobs(
         attn = torch.zeros((n, width), dtype=torch.long)
         use_pos = any(r.position_ids is not None for r, _, _ in batch)
         pos = torch.zeros((n, width), dtype=torch.long)
+        roles = torch.zeros((n, width), dtype=torch.long)
         for row, (r, mask_idx, _) in enumerate(batch):
             length = r.input_ids.shape[0]
             x[row, :length] = r.input_ids
@@ -92,7 +94,11 @@ def _masked_logprobs(
             pos[row, :length] = (
                 r.position_ids if r.position_ids is not None else torch.arange(length)
             )
+            if r.chain_ids is not None:
+                roles[row, :length] = r.chain_ids
         kwargs = {"position_ids": pos.to(device)} if use_pos else {}
+        if getattr(model, "takes_chain_ids", False):
+            kwargs["chain_ids"] = roles.to(device)
         with torch.inference_mode():
             logits = model(input_ids=x.to(device), attention_mask=attn.to(device), **kwargs).logits
         logp = torch.log_softmax(logits.float(), dim=-1).cpu()
