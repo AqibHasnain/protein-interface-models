@@ -162,3 +162,33 @@
 16:58:01 INFO cla.eval.audit: start MHC_HEAVY td=True P4 n=500
 17:00:58 INFO cla.eval.audit: done MHC_HEAVY td=True P4 in 177s
 17:00:58 INFO cla.eval.audit: start MHC_HEAVY td=True sweep:0 n=500
+17:03:40 INFO cla.eval.audit: done MHC_HEAVY td=True sweep:0 in 162s
+17:03:40 INFO cla.eval.audit: start MHC_HEAVY td=True sweep:5 n=500
+17:07:16 INFO cla.eval.audit: done MHC_HEAVY td=True sweep:5 in 216s
+17:07:16 INFO cla.eval.audit: start MHC_HEAVY td=True sweep:25 n=500
+17:12:50 INFO cla.eval.audit: done MHC_HEAVY td=True sweep:25 in 335s
+17:12:50 INFO cla.eval.audit: start MHC_HEAVY td=True C1:5 n=250
+17:14:56 INFO cla.eval.audit: done MHC_HEAVY td=True C1:5 in 126s
+17:14:56 INFO cla.eval.audit: start MHC_HEAVY td=True C1:20 n=250
+17:16:54 INFO cla.eval.audit: done MHC_HEAVY td=True C1:20 in 118s
+17:16:54 INFO cla.eval.audit: start MHC_HEAVY td=True C2 n=250
+17:18:58 INFO cla.eval.audit: done MHC_HEAVY td=True C2 in 123s
+17:18:58 INFO cla.eval.audit: start MHC_HEAVY td=True G@0 n=250
+17:21:01 INFO cla.eval.audit: done MHC_HEAVY td=True G@0 in 123s
+17:21:01 INFO cla.eval.audit: start MHC_HEAVY td=True G1@1 n=250
+17:23:02 INFO cla.eval.audit: done MHC_HEAVY td=True G1@1 in 122s
+17:23:02 INFO cla.eval.audit: start MHC_HEAVY td=True G1@5 n=250
+17:25:04 INFO cla.eval.audit: done MHC_HEAVY td=True G1@5 in 121s
+17:25:04 INFO cla.eval.audit: start MHC_HEAVY td=True G1@25 n=250
+17:27:06 INFO cla.eval.audit: done MHC_HEAVY td=True G1@25 in 122s
+17:27:06 INFO cla.eval.audit: start MHC_HEAVY td=True G1@100 n=250
+17:29:09 INFO cla.eval.audit: done MHC_HEAVY td=True G1@100 in 123s
+17:29:09 INFO cla.eval.audit: start MHC_HEAVY td=True G1@400 n=250
+17:31:12 INFO cla.eval.audit: done MHC_HEAVY td=True G1@400 in 123s
+17:31:12 INFO cla.eval.audit: start MHC_HEAVY td=True G2@1 n=250
+17:33:16 INFO cla.eval.audit: done MHC_HEAVY td=True G2@1 in 124s
+17:33:16 INFO cla.eval.audit: start MHC_HEAVY td=True G2@5 n=250
+17:35:20 INFO cla.eval.audit: done MHC_HEAVY td=True G2@5 in 125s
+17:35:20 INFO cla.eval.audit: start MHC_HEAVY td=True G2@25 n=250
+17:37:26 INFO cla.eval.audit: done MHC_HEAVY td=True G2@25 in 125s
+17:37:26 INFO cla.eval.audit: start MHC_HEAVY td=True G2@100 n=250

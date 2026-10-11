@@ -379,3 +379,62 @@ nats for twenty real substitutions.
 The sanity threshold was fixed at 0.25 in the audit code before these numbers
 were read, and it is not being moved now that it has excluded results. A
 threshold that is relaxed when it rejects the desired answer is not a check.
+
+## 2026-10-10 - No estimator rescues the short spans, and the threshold is not being moved
+
+A probe at 35M over 200 specs tried span_pll, windowed masking at (1,1), (2,2),
+(3,3), (5,5), and full pseudo-likelihood on PEPTIDE and TCRB. Nothing clears the
+0.25 margin. The best TCRB margin is 0.139 from whole-span masking, and
+shrinking the window makes it worse. PEPTIDE never rises above the uniform prior
+under any estimator.
+
+**The span-masking estimator was not the cause.** Three measurements say so.
+
+A unigram model fitted to the dataset's own spans reaches a margin of 0.40 on
+TCRB and 0.15 on unique epitopes. ESM-2 35M reaches 0.10 on TCRB. The model is
+beaten by amino-acid frequencies on the receptor span.
+
+Scoring each span alone and then inside the full complex gives the context gain,
+which is how much the rest of the complex improves the prediction. Under
+windowed estimators it is +0.04 to +0.07 for TCRB and -0.09 to -0.13 for
+PEPTIDE. The model extracts no usable information from the other chains, and for
+the peptide the other chains actively hurt.
+
+MHC_HEAVY passes because it is conserved and predictable. CDR3 and epitope
+residues are hypervariable, so a near-uniform masked-LM prior there is the
+expected outcome rather than a defect.
+
+**Decision: the 0.25 threshold stays where it is, and the uniform-prior
+reference stays too.** Both are arguably miscalibrated for hypervariable spans,
+and a dataset-unigram reference would be the better instrument. That change is
+not being made now, because the GSI outcome has already been seen. Rewriting the
+admissibility criterion after learning which results it excludes would convert a
+check into a formality. It is recorded as the first item of future work, to be
+fixed before any rerun and evaluated blind.
+
+**Consequence for the report.** PEPTIDE and TCRB are reported as not
+established. Their GSI exceeds 1.0 under every estimator tried, rising to 7x and
+11.5x at gap 150, and gap 0 is exactly 0 throughout. That is consistent with the
+hypothesis and is worth showing, but it is movement in a score that carries
+almost no information, so it cannot carry a claim. MHC_HEAVY at 150M is the one
+condition that passes its own admissibility check and it is what the headline
+rests on.
+
+## 2026-10-10 - Context gain is promoted to a first-class diagnostic
+
+The quantity that settled the question above deserves to be reported rather than
+buried in a probe: the difference between a span's pLL scored alone and scored
+inside the complex. It answers directly whether a concatenation-based model uses
+the other chains at all, which is a precondition for any claim about chain
+layout mattering.
+
+It also sharpens the finding. The score moves when chain-break geometry changes
+while the context gain is approximately zero, so the sensitivity is not a
+corruption of cross-chain reasoning the model is doing. There is no cross-chain
+reasoning to corrupt. The position change is reaching the score through a path
+that carries no information about the complex.
+
+Anyone proposing to fix chain layout in a concatenation model should measure
+context gain first. If it is zero, the layout fix addresses an artifact in a
+model that is not using the chains anyway, and the honest move is to fix that
+instead.
