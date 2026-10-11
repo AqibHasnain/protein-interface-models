@@ -875,70 +875,83 @@ def fig6_allele_balanced(results: Path, out: Path) -> None:
 ARM_LABELS = {"A0": "A0 baseline", "A4": "A4 full module", "A5": "A4 + order augmentation"}
 
 
-def fig7_h2_classifier(out: Path, results: Path = Path("results/phase2/classifier")) -> None:
-    """Per-seed held-out AUROC against chance, the direct test of H2.
+CLASSIFIER_ROOTS = (
+    ("ESM-2 35M", Path("results/phase2/classifier")),
+    ("ESM-2 650M", Path("results/phase2/classifier_650m")),
+)
 
-    Seeds are drawn individually rather than as a mean with an error bar: the seed spread is
-    as large as the between-arm differences, and that is the finding.
-    """
-    path = results / "summary.tsv"
+
+def _classifier_seeds(root: Path) -> tuple[dict, dict] | None:
+    path = root / "summary.tsv"
     if not path.exists():
-        return
+        return None
     with path.open() as fh:
         rows = {r["arm"]: r for r in csv.DictReader(fh, delimiter="\t")}
     seeds: dict[str, dict[str, list[float]]] = {}
     for arm in ARM_LABELS:
         per: dict[str, list[float]] = {}
         for s in range(3):
-            m = results / "runs" / f"{arm}_s{s}" / "metrics.json"
+            m = root / "runs" / f"{arm}_s{s}" / "metrics.json"
             if not m.exists():
                 continue
             ev = json.loads(m.read_text())["eval"]
             for shard in ("test_allele", "test_epitope"):
                 per.setdefault(shard, []).append(ev[shard]["auroc"]["point"])
-        if per:
+        if per and arm in rows:
             seeds[arm] = per
-    if not seeds:
+    return (rows, seeds) if seeds else None
+
+
+def fig7_h2_classifier(out: Path, roots=CLASSIFIER_ROOTS) -> None:
+    """Per-seed held-out AUROC against chance, the direct test of H2.
+
+    Seeds are drawn individually rather than as a mean with an error bar: the seed spread is
+    as large as the between-arm differences, and that is the finding.
+    """
+    loaded = [(label, *d) for label, root in roots if (d := _classifier_seeds(root))]
+    if not loaded:
         return
 
     shards = [("test_allele", "Held-out alleles"), ("test_epitope", "Held-out epitopes")]
-    fig, axes = plt.subplots(1, 2, figsize=(9.4, 4.0), sharey=True)
-    arms = list(seeds)
-    for ax, (shard, shard_title) in zip(axes, shards, strict=True):
-        for i, arm in enumerate(arms):
-            vals = seeds[arm][shard]
-            color = TARGET_COLORS[TARGETS[i % len(TARGETS)]]
-            ax.plot(
-                [i] * len(vals),
-                vals,
-                ls="none",
-                marker="o",
-                markersize=7,
-                color=color,
-                alpha=0.65,
-                markeredgecolor=SURFACE,
-                markeredgewidth=1.2,
-                zorder=3,
-            )
-            mean = float(rows[arm][f"{shard}_auroc_mean"])
-            lo = float(rows[arm][f"{shard}_auroc_lo"])
-            hi = float(rows[arm][f"{shard}_auroc_hi"])
-            ax.plot([i - 0.26, i + 0.26], [mean, mean], color=color, lw=2.2, zorder=4)
-            ax.plot([i, i], [lo, hi], color=color, lw=1.2, alpha=0.7, zorder=2)
-        ax.axhline(0.5, color=AXIS, lw=1, ls=DASH, zorder=1)
-        ax.set_xticks(range(len(arms)), [ARM_LABELS[a] for a in arms], fontsize=8.5)
-        ax.set_xlim(-0.6, len(arms) - 0.4)
-        ax.set_ylim(0.3, 0.72)
-        ax.grid(False, axis="x")
-        ax.set_title(shard_title, fontsize=9.5, color=TEXT_2, loc="left")
-    axes[0].set_ylabel("Held-out binding AUROC", fontsize=9)
-    _ref_label(axes[0], "chance", y=0.5)
+    nrow = len(loaded)
+    fig, axes = plt.subplots(nrow, 2, figsize=(9.4, 1.0 + 3.0 * nrow), sharey=True, squeeze=False)
+    for row, (size_label, rows, seeds) in enumerate(loaded):
+        arms = list(seeds)
+        for ax, (shard, shard_title) in zip(axes[row], shards, strict=True):
+            for i, arm in enumerate(arms):
+                color = TARGET_COLORS[TARGETS[i % len(TARGETS)]]
+                ax.plot(
+                    [i] * len(seeds[arm][shard]),
+                    seeds[arm][shard],
+                    ls="none",
+                    marker="o",
+                    markersize=7,
+                    color=color,
+                    alpha=0.65,
+                    markeredgecolor=SURFACE,
+                    markeredgewidth=1.2,
+                    zorder=3,
+                )
+                mean = float(rows[arm][f"{shard}_auroc_mean"])
+                lo = float(rows[arm][f"{shard}_auroc_lo"])
+                hi = float(rows[arm][f"{shard}_auroc_hi"])
+                ax.plot([i - 0.26, i + 0.26], [mean, mean], color=color, lw=2.2, zorder=4)
+                ax.plot([i, i], [lo, hi], color=color, lw=1.2, alpha=0.7, zorder=2)
+            ax.axhline(0.5, color=AXIS, lw=1, ls=DASH, zorder=1)
+            ax.set_xticks(range(len(arms)), [ARM_LABELS[a] for a in arms], fontsize=8.5)
+            ax.set_xlim(-0.6, len(arms) - 0.4)
+            ax.set_ylim(0.28, 0.75)
+            ax.grid(False, axis="x")
+            ax.set_title(f"{size_label}, {shard_title}", fontsize=9.5, color=TEXT_2, loc="left")
+        axes[row][0].set_ylabel("Held-out binding AUROC", fontsize=9)
+        _ref_label(axes[row][0], "chance", y=0.5)
 
+    sizes = ", ".join(label for label, _, _ in loaded)
     fig.set_layout_engine("constrained")
     _headline(
         fig,
         "The chain-aware module does not improve held-out binding over a matched baseline",
-        "ESM-2 35M, LoRA r=16, 1,663,201 trainable parameters in every arm, 300 steps, three "
+        f"{sizes}. LoRA r=16, trainable parameters matched across arms, 300 steps, three "
         "seeds. Each dot is one seed; the bar is the seed mean, the thin line a cluster "
         "bootstrap over MHC alleles.",
         "Every arm's interval covers chance and every delta against A0 covers zero. The seed\n"
