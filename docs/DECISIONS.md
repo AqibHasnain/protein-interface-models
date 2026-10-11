@@ -631,3 +631,56 @@ Coverage is not raised by adding tests to hit those lines. The repository's
 testing rule treats a test that exists to move a coverage number as bloat, and
 the plan's 80% figure is a target rather than a finding. The gap is recorded
 here instead of being closed with tests that guard nothing.
+
+## 2026-10-10 - The reset arm's GSI of zero is circular and is not reported as a result
+
+Measuring the per-chain-reset arm against the G1 operator is a tautology. G1
+perturbs by adding a gap to position indices at chain breaks. Per-chain reset
+rebuilds every index from `chain_slices` and discards whatever came in. The arm
+therefore scores exactly 0 by construction, for the same reason that deleting a
+number after adding it returns the original.
+
+The zero is an implementation check that reset does what it says. It is not
+evidence that the module fixes anything, and the Phase 2 results present it as
+such explicitly rather than as A2 winning.
+
+**What the non-circular test has to be.** H1's motivating nuisance is not an
+injected gap, it is variable chain length: a CDR3-beta three residues longer
+shifts every downstream cross-chain offset by three. The fix is supposed to make
+the score insensitive to that. Two operators test it without circularity:
+
+- **Chain order permutation.** Permuting chains genuinely changes the token
+  sequence, so the module cannot erase it. Under the baseline the permutation
+  also changes every cross-chain offset; under reset plus a constant break
+  offset the within-chain indices and the chain-to-chain separation are both
+  order-invariant. Residual sensitivity from attention over reordered tokens
+  remains in both arms, so the comparison is informative rather than definitional.
+- **Native chain-length variation.** Complexes sharing an allele but differing in
+  CDR3 length, measuring the variance of the MHC score across them. Under the
+  baseline, length drives downstream offsets; under the fix it should not.
+
+Both are run before any Phase 2 claim is made.
+
+## 2026-10-10 - The module is not free at inference, and offset 200 does not fit ESM-2
+
+Two practical findings from the zero-shot arms, both worth more than the GSI
+numbers around them.
+
+**Applying the module degrades the zero-shot score.** Median baseline score
+change against A0, with the resulting margin over the uniform prior where
+measured: reset alone moves the score 0.66 nats and leaves a margin of 0.03,
+offset 50 moves it 0.47 for a margin of 0.22, and reset plus offset 200 moves it
+0.42 for 0.28. The Phase 1 usability threshold is 0.25, so several arms land at
+or below the bar they would need to be measurable at all.
+
+This is expected and it is the reason the plan trains the arms rather than
+applying the module zero-shot. ESM-2 has never seen per-chain-reset positions.
+It does mean the module cannot be sold as a free inference-time fix, which is
+how a reader would otherwise interpret a drop-in positional module.
+
+**The structure-model convention of 200 does not transfer.** With five chains, a
+200-index break offset puts every layout past ESM-2's trained range of 1026, so
+the arm has no in-distribution examples at all. Offset 100 already loses the
+gap-100 cell for the same reason. Any chain-break offset for a 5-chain complex
+on a 1026-position backbone has to be roughly 50 or below, which is a constraint
+the plan's default would have violated silently.
