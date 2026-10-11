@@ -1,0 +1,46 @@
+{
+  "run_id": "20261011T112037Z-70ff56",
+  "git_sha": "e32f92c74666005151b84cf2f28545c3813db0e1",
+  "git_dirty": true,
+  "config": {
+    "arm": "A1",
+    "module": {
+      "reset": false,
+      "chain_embedding": true,
+      "offset": null
+    },
+    "lora_r": 16,
+    "lora_alpha": 32,
+    "lr": 0.0005,
+    "weight_decay": 0.0,
+    "warmup_frac": 0.05,
+    "grad_clip": 1.0,
+    "batch_size": 16,
+    "steps": 300,
+    "train_subsample": 4800,
+    "seed": 0,
+    "model": "650M",
+    "eval_n_mlm": 400,
+    "threads": 8,
+    "device": "mps",
+    "trainable": {
+      "total": 12172800,
+      "lora": 12165120,
+      "role_embedding": 7680,
+      "padding": 0
+    }
+  },
+  "config_hash": "9de356479379",
+  "data_checksums": {
+    "data/processed/vdjdb_specs.jsonl": "1add617916634b95ddd009e64b306914f14ab7cfed47797097ebfe690acac4b1",
+    "/Users/aqib/mithrl/protein-interface-models/configs/splits.yaml": "9e57aa0a2af8750a9d8cee1ae526cbdba53577fcc5d3edd65fddf295e5050e89"
+  },
+  "package_versions": {
+    "python": "3.12.5",
+    "torch": "2.14.1",
+    "transformers": "5.19.0",
+    "numpy": "2.5.3"
+  },
+  "device": "mps",
+  "started_at": "2026-10-11T11:20:37.837567+00:00"
+}

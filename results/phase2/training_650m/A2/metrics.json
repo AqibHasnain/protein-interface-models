@@ -1,0 +1,223 @@
+{
+  "arm": "A2",
+  "status": "completed",
+  "steps_run": 300,
+  "steps_planned": 300,
+  "hparams": {
+    "lora_r": 16,
+    "lora_alpha": 32,
+    "lr": 0.0005,
+    "weight_decay": 0.0,
+    "warmup_frac": 0.05,
+    "grad_clip": 1.0,
+    "batch_size": 16,
+    "steps": 300,
+    "train_subsample": 4800,
+    "seed": 0,
+    "model": "650M",
+    "eval_n_mlm": 400,
+    "threads": 8
+  },
+  "module": {
+    "reset": true,
+    "chain_embedding": false,
+    "offset": null
+  },
+  "trainable_params": {
+    "total": 12172800,
+    "lora": 12165120,
+    "role_embedding": 0,
+    "padding": 7680
+  },
+  "padding_note": "7680 unused embedding parameters added so the trainable count matches arms with the chain-identity embedding",
+  "train_wall_clock_s": 1016.6720690727234,
+  "eval_wall_clock_s": 727.9650549888611,
+  "train_loss": {
+    "first10": 2.943226718902588,
+    "last10": 1.5081817626953125
+  },
+  "g2": null,
+  "evals": {
+    "step0": {
+      "step": 0,
+      "mlm": {
+        "test_allele": {
+          "loss": 2.920106978416443,
+          "se_examples": 0.0061216246482825604,
+          "n": 400,
+          "by_role": {
+            "TCRA": 2.9543531378921197,
+            "TCRB": 2.921810843310488,
+            "PEPTIDE": 2.8684204253864825
+          }
+        },
+        "test_epitope": {
+          "loss": 2.965631670355797,
+          "se_examples": 0.007241733761292261,
+          "n": 400,
+          "by_role": {
+            "TCRA": 3.0367209669597086,
+            "TCRB": 2.9636174032984344,
+            "PEPTIDE": 2.868804693222046
+          }
+        }
+      },
+      "mhc": {
+        "n": 499,
+        "median_score": -2.704386591911316,
+        "margin_over_uniform_prior": 0.29134568164267494
+      },
+      "length_sensitivity": {
+        "n_sets": 147,
+        "n_alleles": 9,
+        "median_abs_slope": 0.03420471084319939,
+        "ci": [
+          0.018250717730312557,
+          0.04317558407783508
+        ],
+        "shuffled_null": 0.035676198999087014,
+        "excess_over_null": -0.0014714881558876222,
+        "excess_ci": [
+          -0.009679029385248818,
+          0.004953490408948353
+        ]
+      }
+    },
+    "gate": {
+      "step": 30,
+      "mlm": {
+        "test_allele": {
+          "loss": 2.880762118399143,
+          "se_examples": 0.015941125623643238,
+          "n": 400,
+          "by_role": {
+            "TCRA": 2.765636450579377,
+            "TCRB": 2.6285718725811176,
+            "PEPTIDE": 3.4327212480627143
+          }
+        },
+        "test_epitope": {
+          "loss": 2.9612174174189567,
+          "se_examples": 0.01718017617194493,
+          "n": 400,
+          "by_role": {
+            "TCRA": 2.9902994053596954,
+            "TCRB": 2.6608073683231765,
+            "PEPTIDE": 3.374334774017334
+          }
+        }
+      },
+      "mhc": {
+        "n": 499,
+        "median_score": -2.8300485014915466,
+        "margin_over_uniform_prior": 0.16568377206244422
+      },
+      "length_sensitivity": {
+        "n_sets": 147,
+        "n_alleles": 9,
+        "median_abs_slope": 0.007679993907610576,
+        "ci": [
+          0.0058029890060424805,
+          0.010715067386627197
+        ],
+        "shuffled_null": 0.007220536470413208,
+        "excess_over_null": 0.00045945743719736764,
+        "excess_ci": [
+          -0.00045750718949395293,
+          0.0021902157542380398
+        ]
+      }
+    },
+    "final": {
+      "step": 300,
+      "mlm": {
+        "test_allele": {
+          "loss": 2.586859014034271,
+          "se_examples": 0.011363084313974349,
+          "n": 400,
+          "by_role": {
+            "TCRA": 2.5110528647494155,
+            "TCRB": 2.355439444311259,
+            "PEPTIDE": 3.0523042732376795
+          }
+        },
+        "test_epitope": {
+          "loss": 2.587196163535118,
+          "se_examples": 0.01268917617716806,
+          "n": 400,
+          "by_role": {
+            "TCRA": 2.6331719651636964,
+            "TCRB": 2.2953867863734727,
+            "PEPTIDE": 2.9636128902435304
+          }
+        }
+      },
+      "mhc": {
+        "n": 499,
+        "median_score": -2.581888109445572,
+        "margin_over_uniform_prior": 0.41384416410841895
+      },
+      "length_sensitivity": {
+        "n_sets": 147,
+        "n_alleles": 9,
+        "median_abs_slope": 0.01203656425842872,
+        "ci": [
+          0.008683453906666149,
+          0.021018505096435547
+        ],
+        "shuffled_null": 0.0124737456982786,
+        "excess_over_null": -0.00043718143984987877,
+        "excess_ci": [
+          -0.001402917837269568,
+          0.0051463121610737985
+        ]
+      }
+    }
+  },
+  "final": {
+    "step": 300,
+    "mlm": {
+      "test_allele": {
+        "loss": 2.586859014034271,
+        "se_examples": 0.011363084313974349,
+        "n": 400,
+        "by_role": {
+          "TCRA": 2.5110528647494155,
+          "TCRB": 2.355439444311259,
+          "PEPTIDE": 3.0523042732376795
+        }
+      },
+      "test_epitope": {
+        "loss": 2.587196163535118,
+        "se_examples": 0.01268917617716806,
+        "n": 400,
+        "by_role": {
+          "TCRA": 2.6331719651636964,
+          "TCRB": 2.2953867863734727,
+          "PEPTIDE": 2.9636128902435304
+        }
+      }
+    },
+    "mhc": {
+      "n": 499,
+      "median_score": -2.581888109445572,
+      "margin_over_uniform_prior": 0.41384416410841895
+    },
+    "length_sensitivity": {
+      "n_sets": 147,
+      "n_alleles": 9,
+      "median_abs_slope": 0.01203656425842872,
+      "ci": [
+        0.008683453906666149,
+        0.021018505096435547
+      ],
+      "shuffled_null": 0.0124737456982786,
+      "excess_over_null": -0.00043718143984987877,
+      "excess_ci": [
+        -0.001402917837269568,
+        0.0051463121610737985
+      ]
+    }
+  },
+  "final_null_reason": null
+}

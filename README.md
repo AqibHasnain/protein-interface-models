@@ -27,8 +27,15 @@ and CDR3-beta fail that check at every size and support no claim.
 The gap has to reach 25 index steps for the effect to appear. Natural CDR3-beta
 length varies by 3 to 4 residues, and matched complexes differing only in that
 length show no length-attributable effect on the score. Trained directly on
-binding, the chain-aware module does not beat a parameter-matched baseline on
-either held-out shard.
+binding at 35M and 650M, the chain-aware module produces no above-chance
+predictor on either held-out shard.
+
+One pattern survived both model sizes and is recorded as a direction rather than
+a result: paired by seed, the module raises held-out-epitope AUROC in every seed
+and the full module lowers held-out-allele AUROC in every seed. That is the
+generalization split the chain-layout argument predicts, measured from a baseline
+that sits below chance, at three seeds per cell, by an analysis chosen after
+seeing the data.
 
 The recommendation is against adopting a chain-aware positional module for this
 setting. `docs/REPORT.md` carries the full results, the four claims that were

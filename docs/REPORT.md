@@ -246,6 +246,14 @@ to special tokens. The position-only G operators replace them; the content-coupl
 in the result files under their own labels. The measurements behind these findings (35M, CPU) are in
 the decision log and are not regenerated from `results/`.
 
+5. **"The full module fails its mid-training gate."** True at 35M, where gate G2 killed A4 at step 30
+   on a collapsed MHC margin. At 650M the same arm passes the gate and runs to completion. The gate
+   fired correctly on the evidence it had; the claim about the module did not survive the larger
+   backbone.
+6. **"LoRA at this scale damages the scorer regardless of the module."** Drawn from every 35M arm
+   including the baseline ending with an MHC margin at or below zero. The 650M baseline holds
+   +0.751, so this was a property of a 35M backbone with no margin to spare.
+
 ## 7. Limitations
 
 1. **Most of the audit is not evidence.** PEPTIDE and TCRB are inadmissible at every size. Two of
@@ -353,33 +361,65 @@ any order; and of the arms that reduce sensitivity most, only offset 25 is still
 
 ### 8.6 Training the arms, and gate G2
 
-ESM-2 35M on CPU, 300 steps at batch 16 over 4,800 examples, LoRA r=16 on attention and FFN,
-identical batches, masks, optimizer and schedule across arms, trainable parameters matched at
-1,661,760 by padding the arms that have no chain embedding. One seed, no learning-rate check.
+300 steps at batch 16 over 4,800 examples, LoRA r=16 on attention and FFN, identical batches, masks,
+optimizer and schedule across arms, trainable parameters matched by padding the arms that have no
+chain embedding. One seed per arm. Run at 35M on CPU and at 650M on MPS, 29 minutes per arm.
 
-**Gate G2 failed on A4 and the arm was killed at step 30**, as the plan specifies. Loss was falling
-and not NaN, but the held-out-allele MHC margin dropped to -0.26, below the uniform prior, and
-length sensitivity was 0.0155 against A0's 0.0034 at the same step. The module presents positions the
-backbone has never seen and 30 LoRA steps do not repair the scorer. The gate was written to catch
-that and it did; the arm is reported killed rather than revived with a larger budget.
+The 650M runs are the informative ones and the 35M runs are reported because they came first and
+because one of their conclusions turned out to be an artifact of the size.
 
-| Arm | Held-out allele MLM loss | Delta vs A0 | Held-out epitope MLM loss | MHC margin |
+| Arm | Allele MLM loss | Delta vs A0 | Epitope MLM loss | Delta vs A0 | MHC margin |
+|---|---|---|---|---|---|
+| A0 baseline | 2.257 | n/a | 2.225 | n/a | +0.751 |
+| A1 embedding | 2.215 | -0.042 | 2.234 | +0.009 | +0.749 |
+| A2 reset | 2.587 | +0.330 | 2.587 | +0.362 | +0.414 |
+| A3 offset 50 | 2.213 | -0.045 | 2.301 | +0.075 | +0.570 |
+| A4 full | 2.219 | -0.039 | 2.294 | +0.068 | +0.054 |
+| A5 A4 plus augmentation | 2.271 | +0.013 | 2.294 | +0.068 | -0.149 |
+
+Standard errors on the deltas are 0.005 to 0.014 nats, so the loss differences are resolved. All six
+arms completed 300 steps at 650M. Three things follow.
+
+**The module's cost is in the MHC margin, and it scales with how much of the module is switched on.**
+Against A0's +0.751: the chain embedding alone is free (+0.749), the offset alone costs 0.18, the
+per-chain reset alone costs 0.34, all three together cost 0.70, and adding order augmentation drives
+the margin negative at -0.149. A negative margin means the scorer does worse than a uniform prior
+over the 20 amino acids on the residues the project cares about. Held-out MLM loss does not show
+this: A4 is 0.039 nats *better* than baseline on held-out alleles while its margin collapses. A
+reader checking only the headline loss would conclude the full module is free.
+
+**Per-chain reset is the worst single component**, at both sizes. It costs 0.33 nats on held-out
+alleles, 0.36 on held-out epitopes, and raises the raw length-sensitivity slope to 0.0120 against
+A0's 0.0037. It is the component that discards incoming position information, so a penalty is
+expected; its size is the finding.
+
+**Gate G2 passed on A4 at 650M, and the arm ran to completion.** At 35M the same arm was killed at
+step 30, on a held-out MHC margin of -0.26 and a length sensitivity of 0.0155 against A0's 0.0034.
+That kill was a property of the 35M backbone, not of the module. It is kept in the record as a
+correctly-fired gate on the evidence available at the time, and withdrawn as a statement about the
+module. The 650M margin of +0.054 says the module nearly exhausts the scorer's margin rather than
+destroying it.
+
+The 35M arms, for comparison:
+
+| Arm | Allele MLM loss | Delta vs A0 | Epitope MLM loss | MHC margin |
 |---|---|---|---|---|
 | A0 | 2.443 | n/a | 2.451 | -0.024 |
 | A1 embedding | 2.345 | -0.098 | 2.347 | -0.091 |
 | A2 reset | 2.608 | +0.166 | 2.622 | -0.071 |
 | A3 offset 50 | 2.329 | -0.113 | 2.361 | -0.119 |
-| A4 full | killed at G2 | n/a | n/a | n/a |
+| A4 full | killed at G2 step 30 | n/a | n/a | n/a |
 | A5 A4 plus augmentation | 2.295 | -0.148 | 2.439 | -0.097 |
 
-Every arm sits near the uniform prior of 2.9957 nats on held-out data while training loss reaches
-about 1.0, so the arms fit the training set and do not generalize. The 0.1 to 0.15 nat advantages of
-A1, A3 and A5 are small against that level and rest on one seed. Two results are firmer: per-chain
-reset alone is worse than baseline on both loss and sensitivity, and every arm including A0 ends with
-the MHC margin at or below zero, so LoRA at this scale damages the scorer regardless of the module.
+Every 35M arm including A0 ends with the MHC margin at or below zero. The report previously read that
+as "LoRA at this scale damages the scorer regardless of the module". The 650M baseline at +0.751
+shows the first half of that was about the scale: LoRA does not inherently damage the scorer, a 35M
+backbone has no margin to spare. The conclusion that the module costs margin survives, and at 650M it
+is measurable rather than buried under a floor effect.
 
-Length sensitivity does not separate the arms, because the shuffled null tracks the observed slope in
-each. A5's lower raw slope comes with a matching drop in its null floor, which agrees with 8.4.
+Length sensitivity does not separate the arms at either size, because the shuffled null tracks the
+observed slope in each. Excess over the null is between -0.00044 and +0.00007 for all six 650M arms,
+which reproduces 8.4 under training.
 
 ### 8.7 The binding classifier: H2 tested at both sizes
 
@@ -464,8 +504,9 @@ and is not established by them.
 The module does what it was designed to do on the permutation axis and costs score quality to do it.
 Trained directly on binding at two model sizes, it does not produce an above-chance predictor on
 either held-out shard, so H2 as written is not supported. On the masked-LM objective the arms are
-indistinguishable from baseline except per-chain reset, which is worse, and the full module failed
-its mid-training gate at 35M.
+indistinguishable from baseline on held-out loss, but the module's cost shows up in the MHC margin
+and scales with how much of it is enabled: from +0.751 at baseline to +0.054 for the full module and
+-0.149 with order augmentation.
 
 Against that, one pattern survived a 19-fold change in backbone size with every seed agreeing: the
 module raises held-out-epitope AUROC and the full module lowers held-out-allele AUROC. That split is

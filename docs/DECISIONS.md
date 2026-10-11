@@ -945,3 +945,41 @@ to resolve a 0.05 AUROC shift.
 The analysis lives in `src/cla/eval/h2_paired.py` so it reruns rather than being a number in
 prose, with one test covering the failure that would corrupt it silently, a half-finished
 sweep pairing mismatched seeds.
+
+## The 650M masked-LM arms complete, and two 35M conclusions are withdrawn
+
+All six arms ran 300 steps at 650M on MPS, 29 minutes each. Two statements the report
+carried from the 35M runs do not survive.
+
+**Gate G2 passed on A4 at 650M.** At 35M it killed the arm at step 30 on a held-out MHC
+margin of -0.26. The gate was correct on the evidence it had and the decision to report the
+arm killed rather than revive it with a larger budget was also correct. What was wrong was
+reading the kill as a property of the module. It was a property of a 35M backbone.
+
+**"LoRA at this scale damages the scorer regardless of the module" is withdrawn.** It came
+from every 35M arm including the baseline ending with an MHC margin at or below zero. The
+650M baseline holds +0.751. A 35M backbone had no margin to spare, which is a floor effect,
+not a fact about LoRA.
+
+With the floor gone, the arms separate cleanly and the module's cost becomes measurable:
+
+| Arm | MHC margin | Allele MLM delta vs A0 |
+|---|---|---|
+| A0 baseline | +0.751 | n/a |
+| A1 embedding | +0.749 | -0.042 |
+| A3 offset 50 | +0.570 | -0.045 |
+| A2 reset | +0.414 | +0.330 |
+| A4 full | +0.054 | -0.039 |
+| A5 A4 plus augmentation | -0.149 | +0.013 |
+
+The cost is in the margin and scales with how much of the module is switched on. The chain
+embedding is free. Per-chain reset is the most expensive single component, as it was at 35M.
+The full module leaves +0.054 and the augmented version goes negative, meaning the scorer
+does worse than a uniform prior over 20 amino acids.
+
+The sharpest point for a reader: held-out MLM loss does not show this. A4 is 0.039 nats
+better than baseline on held-out alleles while its margin falls from +0.751 to +0.054.
+Reporting loss alone would have called the full module free.
+
+Length sensitivity excess over the shuffled null stays between -0.00044 and +0.00007 across
+all six arms, so the H2 null from 8.4 reproduces under training at 650M.
