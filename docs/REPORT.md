@@ -147,7 +147,8 @@ No claim is made at gaps 1 and 2. G2 stays below 1.0 for MHC_HEAVY at both sizes
 
 The main sample has Kish effective sample size 1.92, so the effect could have been a property of
 HLA-A*02:01. An allele-balanced resample (51 alleles, at most 27 each, n = 610, effective sample size
-26.86) agrees at both sizes. Intervals are cluster bootstraps over alleles, token dropout on:
+26.86) agrees at both sizes (`fig6_allele_balanced.png`). Intervals are cluster bootstraps over
+alleles, token dropout on:
 
 | Gap | 150M balanced | 650M balanced | 150M concentrated | 650M concentrated |
 |---|---|---|---|---|
