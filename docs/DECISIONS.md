@@ -903,3 +903,45 @@ the GPU backend, two changes at once, without timing either.
 The 650M arms are now running. The general lesson is the one this project keeps
 finding: an estimate that decides whether to run an experiment should be
 replaced by a two-minute measurement before it is written into a document.
+
+## H2 at 650M, and the paired analysis that changed the answer
+
+The 650M classifier sweep ran: three arms, three seeds, 22 minutes per run, 12,176,641
+trainable parameters matched across arms. The headline answer to H2 is unchanged. No arm is
+an above-chance binding predictor at either size, and the only interval that excludes 0.5 is
+A0 on held-out epitopes, which sits below it.
+
+What changed is the reading of the arm differences. The arm means at 35M looked like noise
+because the between-seed standard deviation (0.03 to 0.12) swamped them. That comparison was
+wrong for this design. Seeds are shared across arms: seed k fixes the training subsample, the
+shared initialization and the batch order, so A0 seed k and A4 seed k differ only by the
+module. The paired difference is what the experiment produces and the arm-mean difference
+throws it away.
+
+Paired by seed, three contrasts agree in sign across all six seeds at both model sizes:
+
+| Contrast | 35M | 650M |
+|---|---|---|
+| A4, held-out allele | -0.061 | -0.127 |
+| A4, held-out epitope | +0.104 | +0.067 |
+| A5, held-out epitope | +0.082 | +0.100 |
+
+The module raises held-out-epitope AUROC and the full module lowers held-out-allele AUROC,
+across a 19-fold change in backbone size. That split is what the chain-layout argument
+predicts: a baseline leaning on layout geometry should generalize worst to antigens it has
+never seen.
+
+Four limits are stated with it rather than after it, because any one alone would overstate it.
+The baseline is below chance on the shard that improves, so the module moves it toward 0.5
+and not above. Three seeds per cell; a sign test on six seeds gives p = 0.031 two-sided and
+nothing survives correction for the four contrasts examined. The pairing was chosen after
+seeing the unpaired result, and a post-hoc analysis is worth less than a pre-registered one.
+Negatives remain mismatched decoys.
+
+H2 as written stays not supported. The directional pattern is recorded as the next experiment
+to run, not as a finding: the held-out-epitope shard, validated non-binders, and enough seeds
+to resolve a 0.05 AUROC shift.
+
+The analysis lives in `src/cla/eval/h2_paired.py` so it reruns rather than being a number in
+prose, with one test covering the failure that would corrupt it silently, a half-finished
+sweep pairing mismatched seeds.

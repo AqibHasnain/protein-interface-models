@@ -1,0 +1,138 @@
+{
+  "rows": [
+    {
+      "size": "35M",
+      "arm": "A4",
+      "shard": "test_allele",
+      "n_seeds": 3,
+      "baseline_mean": 0.537,
+      "treatment_mean": 0.4756,
+      "paired_delta": -0.0615,
+      "paired_sd": 0.0233,
+      "unpaired_sd_baseline": 0.097,
+      "t": -4.579,
+      "p": 0.0445,
+      "unanimous": true,
+      "seed_deltas": "-0.041;-0.056;-0.087"
+    },
+    {
+      "size": "35M",
+      "arm": "A4",
+      "shard": "test_epitope",
+      "n_seeds": 3,
+      "baseline_mean": 0.4655,
+      "treatment_mean": 0.5696,
+      "paired_delta": 0.1041,
+      "paired_sd": 0.0779,
+      "unpaired_sd_baseline": 0.0361,
+      "t": 2.315,
+      "p": 0.1467,
+      "unanimous": true,
+      "seed_deltas": "+0.191;+0.041;+0.080"
+    },
+    {
+      "size": "35M",
+      "arm": "A5",
+      "shard": "test_allele",
+      "n_seeds": 3,
+      "baseline_mean": 0.537,
+      "treatment_mean": 0.5812,
+      "paired_delta": 0.0441,
+      "paired_sd": 0.1429,
+      "unpaired_sd_baseline": 0.097,
+      "t": 0.535,
+      "p": 0.6463,
+      "unanimous": false,
+      "seed_deltas": "-0.115;+0.085;+0.162"
+    },
+    {
+      "size": "35M",
+      "arm": "A5",
+      "shard": "test_epitope",
+      "n_seeds": 3,
+      "baseline_mean": 0.4655,
+      "treatment_mean": 0.547,
+      "paired_delta": 0.0815,
+      "paired_sd": 0.0522,
+      "unpaired_sd_baseline": 0.0361,
+      "t": 2.705,
+      "p": 0.1138,
+      "unanimous": true,
+      "seed_deltas": "+0.142;+0.051;+0.051"
+    },
+    {
+      "size": "650M",
+      "arm": "A4",
+      "shard": "test_allele",
+      "n_seeds": 3,
+      "baseline_mean": 0.5949,
+      "treatment_mean": 0.4681,
+      "paired_delta": -0.1267,
+      "paired_sd": 0.0749,
+      "unpaired_sd_baseline": 0.0644,
+      "t": -2.931,
+      "p": 0.0993,
+      "unanimous": true,
+      "seed_deltas": "-0.176;-0.041;-0.163"
+    },
+    {
+      "size": "650M",
+      "arm": "A4",
+      "shard": "test_epitope",
+      "n_seeds": 3,
+      "baseline_mean": 0.4588,
+      "treatment_mean": 0.5261,
+      "paired_delta": 0.0673,
+      "paired_sd": 0.0138,
+      "unpaired_sd_baseline": 0.03,
+      "t": 8.463,
+      "p": 0.0137,
+      "unanimous": true,
+      "seed_deltas": "+0.083;+0.056;+0.063"
+    },
+    {
+      "size": "650M",
+      "arm": "A5",
+      "shard": "test_allele",
+      "n_seeds": 3,
+      "baseline_mean": 0.5949,
+      "treatment_mean": 0.6347,
+      "paired_delta": 0.0398,
+      "paired_sd": 0.0466,
+      "unpaired_sd_baseline": 0.0644,
+      "t": 1.481,
+      "p": 0.2768,
+      "unanimous": false,
+      "seed_deltas": "+0.088;+0.036;-0.005"
+    },
+    {
+      "size": "650M",
+      "arm": "A5",
+      "shard": "test_epitope",
+      "n_seeds": 3,
+      "baseline_mean": 0.4588,
+      "treatment_mean": 0.5593,
+      "paired_delta": 0.1004,
+      "paired_sd": 0.0161,
+      "unpaired_sd_baseline": 0.03,
+      "t": 10.805,
+      "p": 0.0085,
+      "unanimous": true,
+      "seed_deltas": "+0.114;+0.083;+0.104"
+    }
+  ],
+  "replicated_across_sizes": [
+    [
+      "A4",
+      "test_allele"
+    ],
+    [
+      "A4",
+      "test_epitope"
+    ],
+    [
+      "A5",
+      "test_epitope"
+    ]
+  ]
+}
