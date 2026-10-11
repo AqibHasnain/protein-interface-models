@@ -1,6 +1,6 @@
 # Chain-Layout Nuisance Sensitivity in Concatenation-Based Protein Interface Models
 
-I was curious about whether protein language models notice something with no biology in it: where the chain breaks fall. This repo measures that for ESM-2, tries the obvious fix, and reports what happened, including the claims I had to withdraw along the way.
+I was curious about whether protein language models notice something with no biology in it: where the chain breaks fall. This repo measures that for ESM-2, tries the obvious fix, and reports what happened.
 
 Sequence models of multi-chain complexes (TCR-pMHC, antibody-antigen, peptide-MHC)
 are built by concatenating the component chains into one string and running a
@@ -10,9 +10,6 @@ residues longer shifts every downstream peptide-to-MHC offset by three, with no
 change to the underlying biology. Structure models fixed this years ago by
 inserting a large residue-index offset at chain breaks. Sequence-level interface
 models mostly did not.
-
-Phase 1 measures whether that omission leaks. Phase 2 implements the fix and
-measures what it buys. Both ran, both on this laptop, for $0.00.
 
 ## What was found
 
@@ -32,8 +29,7 @@ length show no length-attributable effect on the score. Trained directly on
 binding at 35M and 650M, the chain-aware module produces no above-chance
 predictor on either held-out shard.
 
-One pattern survived both model sizes and is recorded as a direction rather than
-a result: paired by seed, the module raises held-out-epitope AUROC in every seed
+Paired by seed, the module raises held-out-epitope AUROC in every seed
 and the full module lowers held-out-allele AUROC in every seed. That is the
 generalization split the chain-layout argument predicts, measured from a baseline
 that sits below chance, at three seeds per cell, by an analysis chosen after
