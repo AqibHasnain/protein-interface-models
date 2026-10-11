@@ -802,3 +802,37 @@ These runs are a dev-loop at 35M with one seed, no learning-rate check and no
 reported metric for H2 is held-out binding AUROC, which does not exist here. The
 arms show the training harness works and the module trains without diverging.
 They do not show it helps.
+
+## 2026-10-11 - The plan's 80% coverage target is not enforced, and the deviation is stated
+
+Line coverage on `src/cla` is 58%. The plan asks for 80% enforced in CI. The
+gap is concentrated in driver modules: the audit, figures, aggregate,
+allele-balanced, cluster-CI and training entry points.
+
+Those drivers are exercised end to end by the runs whose outputs are committed
+in `results/`. Covering their remaining lines means unit tests that assert a
+script wrote a file, which guard nothing and have to be maintained forever.
+
+The standing testing rule for this work is explicit that coverage is not a goal
+and is never a reason to add a test, and that it holds regardless of a repo's
+own threshold. That rule governs here, so the target is not met and is not
+chased. CI reports coverage and does not gate on it, with the reason written
+into the workflow file rather than left for a reader to infer.
+
+This is a deliberate deviation from the plan, recorded as one.
+
+## 2026-10-11 - The 650M Phase 2 training arms are out of reach and are not attempted
+
+The plan's final Phase 2 runs are six LoRA arms at 650M, budgeted at 10 to 15
+hours each on an A100-class GPU. On this machine a 650M forward pass over ~320
+residues takes 0.46 s, and training adds backward and optimizer cost on a
+backend without the kernels an A100 has.
+
+A single arm would run for days and six arms plus extra seeds would run for
+weeks, against a plan time-box of 10 days for the whole final phase. The arms
+are not started, rather than started and abandoned partway to produce a number
+that could not be compared against anything.
+
+Phase 2 training is therefore reported at 35M dev-loop scale only, which is what
+the plan itself prescribes for the free-tier stage. The 650M gap is a limitation
+of this execution, not a finding about the method.

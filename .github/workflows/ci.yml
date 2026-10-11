@@ -13,4 +13,8 @@ jobs:
       - run: .venv/bin/ruff check src tests
       # The leakage test is the one that must never be allowed to go red.
       - run: .venv/bin/pytest tests/test_splits.py -q
+      # Coverage is reported, not gated. The plan's 80% target is deliberately not
+      # enforced: the driver modules it would cover are exercised end to end by the
+      # committed runs in results/, and padding them with unit tests that guard
+      # nothing is the bloat this project's testing rule forbids.
       - run: .venv/bin/pytest tests -q --cov=src/cla --cov-report=term-missing
