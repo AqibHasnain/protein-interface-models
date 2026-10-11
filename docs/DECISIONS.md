@@ -592,3 +592,42 @@ withdrawal of the small-gap claims.
 This is the last threat to the Phase 1 headline that the available data can
 address. The 650M balanced run is still in progress and will be added when it
 completes; the 150M result is what the claim rests on.
+
+## 2026-10-10 - Phase 2 scope under local-only compute
+
+Gate G1 passed, so the plan's Phase 2 runs. The plan budgets up to $300 on
+A100-class GPUs for six LoRA arms at 650M. No cloud account exists and the
+budget is zero, so Phase 2 is executed at the plan's own dev-loop scale
+(section 7.3: 150M, subsampled data, free tiers) on local Apple Silicon.
+
+One property of the backbone makes most of H2 testable for nothing. ESM-2
+positions enter only through rotary embeddings and the model accepts
+`position_ids`, so two of the three module components, per-chain index reset and
+chain-break offset, are pure index remaps with no parameters. Arms A2, A3 and
+their combination can therefore be measured zero-shot on the existing audit
+machinery. Only the chain-identity embedding (A1) needs gradients, and A4 and A5
+need training to combine all three.
+
+Consequence for the claim. The zero-shot arms answer whether the module reduces
+the measured artifact. They do not answer whether it helps held-out binding
+generalization, because the backbone cannot discriminate binding at all, which
+Phase 1 established. The H2 generalization claim is out of reach at this budget
+and is reported as not tested rather than as a null result.
+
+The offset magnitude is swept rather than fixed at the structure-model
+convention of 200, because the earlier claim that magnitude does not matter was
+withdrawn when the 35M step turned out not to replicate.
+
+## 2026-10-10 - CI runs green locally; coverage is below the plan's target
+
+The workflow's steps (ruff, the leakage test, the full suite) pass on this
+machine. Line coverage on `src/cla` is 58% against the plan's 80% target.
+
+The shortfall is concentrated in driver modules: the audit, figure, aggregate
+and allele-balanced entry points. Those are exercised end to end by the real
+runs whose outputs are committed in `results/`, rather than by unit tests.
+
+Coverage is not raised by adding tests to hit those lines. The repository's
+testing rule treats a test that exists to move a coverage number as bloat, and
+the plan's 80% figure is a target rather than a finding. The gap is recorded
+here instead of being closed with tests that guard nothing.
