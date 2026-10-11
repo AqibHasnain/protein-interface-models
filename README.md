@@ -1,6 +1,6 @@
 # Chain-Layout Nuisance Sensitivity in Concatenation-Based Protein Interface Models
 
-I was curious about whether protein language models notice something with no biology in it: where the chain breaks fall. Interface models for TCR-pMHC, antibody-antigen and peptide-MHC complexes concatenate the chains into one string, so a longer CDR3-beta silently shifts every downstream position. This repo measures whether that matters for ESM-2, tries the obvious fix, and reports what happened, including the claims I had to withdraw along the way.
+I was curious about whether protein language models notice something with no biology in it: where the chain breaks fall. This repo measures that for ESM-2, tries the obvious fix, and reports what happened, including the claims I had to withdraw along the way.
 
 Sequence models of multi-chain complexes (TCR-pMHC, antibody-antigen, peptide-MHC)
 are built by concatenating the component chains into one string and running a
