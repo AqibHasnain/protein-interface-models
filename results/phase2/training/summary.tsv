@@ -1,0 +1,7 @@
+arm	status	steps	trainable_params	padding_params	train_wall_clock_s	allele_mlm_loss	allele_mlm_se	allele_delta_vs_a0	allele_delta_se	epitope_mlm_loss	epitope_mlm_se	epitope_delta_vs_a0	epitope_delta_se	mhc_median_score	mhc_margin	length_sens	length_sens_lo	length_sens_hi	length_sens_excess	length_sens_diff_vs_a0	diff_lo	diff_hi
+A0	completed	300	1661760	2880	626	2.4426	0.0148			2.4511	0.0238			-3.0202	-0.0244	0.0041	0.0026	0.0047	0.0002			
+A1	completed	300	1661760	0	632	2.3447	0.0148	-0.0978	0.0089	2.3470	0.0172	-0.1041	0.0187	-3.0872	-0.0915	0.0044	0.0038	0.0062	-0.0012	0.0003	-0.0006	0.0028
+A2	completed	300	1661760	2880	375	2.6083	0.0125	0.1657	0.0129	2.6221	0.0129	0.1711	0.0208	-3.0668	-0.0710	0.0196	0.0137	0.0312	0.0020	0.0155	0.0106	0.0271
+A3	completed	300	1661760	2880	478	2.3294	0.0144	-0.1132	0.0095	2.3613	0.0173	-0.0898	0.0179	-3.1144	-0.1186	0.0060	0.0049	0.0073	0.0002	0.0018	0.0011	0.0037
+A4	killed_g2	30	1661760	0	48																	
+A5	completed	300	1661760	0	482	2.2945	0.0159	-0.1481	0.0102	2.4393	0.0189	-0.0117	0.0202	-3.0925	-0.0968	0.0020	0.0017	0.0024	-0.0001	-0.0021	-0.0026	-0.0006

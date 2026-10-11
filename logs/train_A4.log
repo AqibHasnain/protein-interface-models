@@ -1,0 +1,5 @@
+Loading weights:   0%|          | 0/203 [00:00<?, ?it/s]Loading weights: 100%|██████████| 203/203 [00:00<00:00, 32916.21it/s]
+/Users/aqib/mithrl/protein-interface-models/src/cla/train/lora.py:253: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at /Users/runner/work/pytorch/pytorch/torch/csrc/autograd/generated/python_variable_methods.cpp:821.)
+  losses.append(float(loss))
+22:13:00 INFO cla.train: A4 killed_g2 in 48s

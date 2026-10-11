@@ -744,3 +744,61 @@ rather than from anything about attention. And only A0 and A3 at offset 25 clear
 the 0.25 usability bar. The arms with the largest reductions are the ones that
 have degraded into unusable scorers, which is the tension that training is
 supposed to resolve.
+
+## 2026-10-11 - Gate G2 failed on A4 and the arm was killed, as pre-specified
+
+The plan's G2 check runs at 10% of steps on the full-module arm and kills the
+run if nuisance sensitivity is not already below the baseline's. A4 failed two
+of three checks at step 30 and was stopped.
+
+Loss fell from 2.95 to 2.36 with no NaN, so that check passed. The held-out
+allele MHC margin went to -0.26, below the uniform prior, so the catastrophic
+forgetting check failed. Median absolute slope of MHC score against CDR3-beta
+length was 0.0155 against A0's 0.0034 at the same step, so sensitivity was
+higher, not lower.
+
+This is the same degradation measured zero-shot: the module presents positions
+the backbone has never seen, and 30 LoRA steps do not repair MHC scoring. The
+gate was written to catch exactly that and it did. The arm is reported as killed
+with no final metrics rather than being revived with a longer budget, because
+the rule was fixed before the run.
+
+## 2026-10-11 - Training with the module is indistinguishable from baseline at this scale
+
+ESM-2 35M, CPU, 300 steps at batch 16 over 4,800 examples, LoRA r=16 on
+attention and FFN, identical batches, masks, optimizer and schedule across arms,
+trainable parameters matched at 1,661,760 by padding the arms without a chain
+embedding.
+
+| Arm | Held-out allele MLM loss | Delta vs A0 | Held-out epitope MLM loss | MHC margin |
+|---|---|---|---|---|
+| A0 | 2.443 | n/a | 2.451 | -0.024 |
+| A1 embedding | 2.345 | -0.098 | 2.347 | -0.091 |
+| A2 reset | 2.608 | +0.166 | 2.622 | -0.071 |
+| A3 offset 50 | 2.329 | -0.113 | 2.361 | -0.119 |
+| A4 full | killed at G2 | n/a | n/a | n/a |
+| A5 A4 plus augmentation | 2.295 | -0.148 | 2.439 | -0.097 |
+
+Every arm sits near the uniform prior of 2.9957 nats on held-out data while
+training loss reaches about 1.0, so the arms are fitting the training set rather
+than generalizing. The 0.1 to 0.15 nat advantages of A1, A3 and A5 are small
+against that absolute level and rest on one seed, so they are not read as the
+module helping.
+
+Two things are firmer. Per-chain reset alone is worse than baseline (+0.166
+nats, and the highest length sensitivity of any arm). And every arm including A0
+finishes with the MHC margin at or below zero, so LoRA at this scale damages the
+scorer regardless of the module.
+
+Length sensitivity does not discriminate between arms, because the shuffled null
+tracks the observed slope in every one. A5's lower raw slope comes with a
+matching drop in its null floor, so it reflects less score noise rather than less
+length dependence. That agrees with the zero-shot finding that there is no
+length-attributable effect to remove.
+
+What this does not establish, stated so it is not inferred: H2 remains untested.
+These runs are a dev-loop at 35M with one seed, no learning-rate check and no
+650M comparison, on a backbone that cannot discriminate binding. The plan's
+reported metric for H2 is held-out binding AUROC, which does not exist here. The
+arms show the training harness works and the module trains without diverging.
+They do not show it helps.

@@ -16,6 +16,7 @@ dependencies = [
     "requests>=2.32",
     "tqdm>=4.66",
     "biopython>=1.84",
+    "peft>=0.13",
 ]
 
 [project.optional-dependencies]

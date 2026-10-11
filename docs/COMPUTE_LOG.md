@@ -24,3 +24,4 @@ to 5 remain the route for Phase 2 training if it is ever run at 650M scale.
 | 2026-10-10T18:45Z | local | Apple M4 Max (MPS) | 25 | $0.00 | 2f26934 | Context gain with scrambled-context control, 3 models, n=300 | Complete |
 | 2026-10-10T18:50Z | local | Apple M4 Max (CPU) | 20 | $0.00 | 2f26934 | Cluster bootstrap over MHC alleles, recomputed intervals | Complete |
 | 2026-10-10T19:26Z | local | Apple M4 Max (MPS) | 90 | $0.00 | 2f26934 | Allele-balanced confirmation, 150M, 51 alleles, n=610 | Complete; 650M still running at time of writing |
+| 2026-10-11T04:41Z | local | Apple M4 Max (CPU) | 156 | $0.00 | 372d5ce | Phase 2 LoRA arms A0-A5, 35M, 300 steps, 4800 examples | A0,A1,A2,A3,A5 complete; A4 killed by gate G2 at step 30 |
