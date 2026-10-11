@@ -342,3 +342,40 @@ smallest sample.
 
 Two scale points do not establish a trend. The report states this as a direction
 observed across two sizes with a third pending, not as scaling behaviour.
+
+## 2026-10-10 - The estimator sanity check fails for two of three targets
+
+The audit records, per target, the median baseline span pLL against the
+uniform-prior reference of -2.9957 (-ln 20), with a required margin of 0.25.
+
+| Target | Estimator | Margin | Usable |
+|---|---|---|---|
+| PEPTIDE | span_pll | 0.039 | no |
+| TCRB | span_pll | 0.104 | no |
+| MHC_HEAVY (35M) | windowed_span_pll | 0.068 | no |
+| MHC_HEAVY (150M) | windowed_span_pll | 0.627 | yes |
+
+Masking an entire short span removes all local context, so the model falls back
+to roughly the uniform prior. A score that carries almost no information cannot
+support a claim about how that score moves. This is the same defect that whole
+span masking produced on MHC_HEAVY, where windowing fixed it, and the peptide
+is a 9-mer so the problem is worse there, not better.
+
+**Consequences, stated before any attempt to rescue the result.**
+
+The PEPTIDE and TCRB numbers at both model sizes are not interpretable as they
+stand. That is most of the audit.
+
+The scale claim is withdrawn. The MHC rise from GSI 3.63 at 35M to 12.46 at
+150M compares an estimator that fails the sanity check against one that passes
+it, so it is not evidence about scale. The previous entry recording that rise as
+the most consequential Phase 1 finding is superseded. Two of the three model
+sizes contributing to it were never admissible.
+
+One condition survives unchanged: MHC_HEAVY at 150M, margin 0.627, where a
+content-free position-index change moves the score 0.55 nats, against 0.045
+nats for twenty real substitutions.
+
+The sanity threshold was fixed at 0.25 in the audit code before these numbers
+were read, and it is not being moved now that it has excluded results. A
+threshold that is relaxed when it rejects the desired answer is not a check.
