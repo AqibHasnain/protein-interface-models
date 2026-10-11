@@ -2,9 +2,14 @@
 
     python -m cla.eval.figures --results results/phase1 --out results/phase1/figures
 
-Reads `<results>/<run>/summary.tsv` (and `nsi.json` for the discrimination figure) for every
-run found by glob. Runs that are absent are skipped, so the same command works while the
-largest model is still pending.
+Reads `<results>/<run>/summary.tsv` and `nsi.json` for every run found by glob, plus
+`<results>/mhc_cluster_ci.tsv` and `mhc_cluster_ci_diagnostics.tsv` when present. Runs that
+are absent are skipped.
+
+A (model, target) condition is admissible when `nsi.json` reports its estimator sanity check
+as usable. Inadmissible conditions are drawn dashed with hollow markers in every figure.
+MHC_HEAVY GSI bands use the cluster bootstrap over alleles, because the sample is dominated
+by one allele and example-level intervals are far too narrow.
 """
 
 from __future__ import annotations
@@ -13,6 +18,7 @@ import argparse
 import csv
 import json
 import re
+import textwrap
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -38,7 +44,6 @@ TARGETS = tuple(TARGET_COLORS)
 LINE_WIDTH = 1.5  # 2 px at 96 dpi
 MARKER_SIZE = 5  # ~10 px
 BAND_ALPHA = 0.18
-EXPECTED_SIZES_M = (35, 150, 650)
 # Horizontal offsets on the log size axis so CI bars of neighbouring targets do not overlap.
 DODGE = {"PEPTIDE": 0.93, "TCRB": 1.0, "MHC_HEAVY": 1.07}
 
@@ -83,11 +88,19 @@ class Run:
     params_m: float
     rows: list[dict]
     nsi: dict | None = None
+    kish_n_eff: float | None = None
     _index: dict = field(default_factory=dict, repr=False)
 
     @property
     def label(self) -> str:
         return f"{self.params_m:g}M"
+
+    def admissible(self, target: str) -> bool:
+        """Estimator sanity check result; a missing nsi.json counts as not admissible."""
+        sanity = ((self.nsi or {}).get("targets", {}).get(target, {}).get("estimator", {})).get(
+            "sanity", {}
+        )
+        return bool(sanity.get("usable", False))
 
     def get(self, operator: str, target: str, gap: int | None = None) -> dict | None:
         """Token-dropout-on, non-OOD row keyed by (operator, target, gap)."""
@@ -136,7 +149,34 @@ def _params_m(name: str, nsi: dict | None) -> float | None:
     return None
 
 
+def _read_cluster_ci(path: Path) -> dict[tuple[str, str, int], tuple[float, float]]:
+    """(model label, operator, gap) -> cluster-bootstrap (lo, hi) for the dropout-on GSI."""
+    out = {}
+    if not path.exists():
+        return out
+    with path.open(newline="") as fh:
+        for r in csv.DictReader(fh, delimiter="\t"):
+            if r["section"] != "gsi" or r["token_dropout"] != "dropout_on":
+                continue
+            if not r["gap"].isdigit():
+                continue
+            out[(r["model"], r["operator"], int(r["gap"]))] = (
+                float(r["cluster_lo"]),
+                float(r["cluster_hi"]),
+            )
+    return out
+
+
+def _read_kish(path: Path) -> dict[str, float]:
+    if not path.exists():
+        return {}
+    with path.open(newline="") as fh:
+        return {r["model"]: float(r["kish_n_eff"]) for r in csv.DictReader(fh, delimiter="\t")}
+
+
 def load_runs(results: Path) -> list[Run]:
+    cluster = _read_cluster_ci(results / "mhc_cluster_ci.tsv")
+    kish = _read_kish(results / "mhc_cluster_ci_diagnostics.tsv")
     runs = []
     for summary in sorted(results.glob("*/summary.tsv")):
         nsi_path = summary.with_name("nsi.json")
@@ -144,8 +184,27 @@ def load_runs(results: Path) -> list[Run]:
         params = _params_m(summary.parent.name, nsi)
         if params is None:
             continue
-        runs.append(Run(summary.parent.name, params, _read_summary(summary), nsi))
+        run = Run(summary.parent.name, params, _read_summary(summary), nsi)
+        run.kish_n_eff = kish.get(run.label)
+        for r in run.rows:
+            ci = cluster.get((run.label, r["operator"], r["gap"]))
+            if ci and r["target"] == "MHC_HEAVY" and r["token_dropout"]:
+                r["lo"], r["hi"] = ci
+        runs.append(run)
     return sorted(runs, key=lambda r: r.params_m)
+
+
+def _ci_caption(runs: list[Run]) -> str:
+    """Records which interval estimator each target uses and the MHC effective sample size."""
+    n_eff = {}
+    for r in runs:
+        if r.kish_n_eff is not None:
+            n_eff.setdefault(f"{r.kish_n_eff:.2f}", []).append(r.label)
+    eff = ", ".join(f"{v} at {' and '.join(models)}" for v, models in n_eff.items())
+    mhc = "MHC_HEAVY intervals: cluster bootstrap over alleles"
+    if eff:
+        mhc += f", Kish n_eff = {eff}"
+    return f"{mhc}. PEPTIDE and TCRB intervals: example-level bootstrap."
 
 
 def _gap_series(run: Run, operator: str, target: str, field_: str = "gsi"):
@@ -248,26 +307,88 @@ def _ref_label(
     )
 
 
-def _headline(fig, title: str, subtitle: str, bottom: float = 0.0) -> None:
-    """Bold finding plus a one-line qualifier; reserves the top strip of the layout."""
-    fig.get_layout_engine().set(rect=(0, bottom, 1, 1 - bottom - 0.1))
-    fig.text(0.01, 0.985, title, fontsize=11, fontweight="bold", va="top")
-    fig.text(0.01, 0.935, subtitle, fontsize=8.5, color=TEXT_2, va="top")
+def _headline(fig, title: str, subtitle: str, caption: str = "", legend: bool = False) -> None:
+    """Wrapped title and subtitle on top; optional legend and caption below.
+
+    Strip heights are computed in inches so that long findings wrap instead of clipping.
+    The layout rect is shrunk to leave room for them.
+    """
+    w, h = fig.get_size_inches()
+    title = textwrap.fill(title, int(w * 10.5))
+    subtitle = textwrap.fill(subtitle, int(w * 14.5))
+    caption = (
+        "\n".join(textwrap.fill(c, int(w * 17)) for c in caption.split("\n")) if caption else ""
+    )
+    top_in = 0.08 + 0.2 * (title.count("\n") + 1) + 0.17 * (subtitle.count("\n") + 1) + 0.12
+    cap_in = (0.03 + 0.14 * (caption.count("\n") + 1)) if caption else 0.0
+    leg_in = 0.36 if legend else 0.0
+    bottom_in = cap_in + leg_in
+    fig.get_layout_engine().set(rect=(0, bottom_in / h, 1, 1 - (top_in + bottom_in) / h))
+    y = 1 - 0.06 / h
+    fig.text(0.01, y, title, fontsize=11, fontweight="bold", va="top", linespacing=1.25)
+    y -= (0.2 * (title.count("\n") + 1) + 0.04) / h
+    fig.text(0.01, y, subtitle, fontsize=8.5, color=TEXT_2, va="top", linespacing=1.3)
+    if caption:
+        fig.text(0.01, 0.03 / h, caption, fontsize=7.5, color=TEXT_2, va="bottom", linespacing=1.4)
+    if legend:
+        _target_legend(fig, anchor=(0.5, cap_in / h))
 
 
-def _target_legend(fig, loc: str = "outside lower center") -> None:
+DASH = (0, (4, 2.5))
+
+
+def _marker_kw(color: str, marker: str, admissible: bool) -> dict:
+    """Hollow marker for inadmissible conditions, filled for admissible ones."""
+    return {
+        "marker": marker,
+        "markerfacecolor": color if admissible else SURFACE,
+        "markeredgecolor": color,
+        "markeredgewidth": 1.0 if admissible else 1.4,
+    }
+
+
+def _line_kw(admissible: bool) -> dict:
+    return {"ls": "-" if admissible else DASH}
+
+
+def _target_legend(fig, anchor: tuple[float, float]) -> None:
     handles = [
         Line2D(
             [],
             [],
             color=TARGET_COLORS[t],
-            marker=TARGET_MARKERS[t],
             label=t,
             markersize=MARKER_SIZE,
+            **_marker_kw(TARGET_COLORS[t], TARGET_MARKERS[t], True),
         )
         for t in TARGETS
     ]
-    fig.legend(handles=handles, loc=loc, ncol=len(handles))
+    handles += [
+        Line2D(
+            [],
+            [],
+            color=TEXT_2,
+            label="passes sanity check",
+            markersize=MARKER_SIZE,
+            **_marker_kw(TEXT_2, "o", True),
+        ),
+        Line2D(
+            [],
+            [],
+            color=TEXT_2,
+            label="fails sanity check",
+            markersize=MARKER_SIZE,
+            **_line_kw(False),
+            **_marker_kw(TEXT_2, "o", False),
+        ),
+    ]
+    fig.legend(
+        handles=handles,
+        loc="lower center",
+        bbox_to_anchor=anchor,
+        ncol=len(handles),
+        columnspacing=1.2,
+    )
 
 
 def _gap_axis(ax, gaps: list[int], right: float = 1000) -> None:
@@ -294,7 +415,7 @@ def fig1_dose_response(runs: list[Run], out: Path) -> None:
     ops = [("G1", "G1: gap at every chain break"), ("G2", "G2: gap before the peptide only")]
     gaps = _in_dist_gaps(runs)
     fig, axes = plt.subplots(
-        len(runs), 2, figsize=(8, 2.55 * len(runs) + 1.1), sharex=True, sharey=True, squeeze=False
+        len(runs), 2, figsize=(8.5, 2.55 * len(runs) + 1.9), sharex=True, sharey=True, squeeze=False
     )
     ymax = max(
         (
@@ -303,10 +424,6 @@ def fig1_dose_response(runs: list[Run], out: Path) -> None:
             for r in run.rows
             if _is_main(r) and r["operator"] in ("G1", "G2")
         ),
-        default=1.0,
-    )
-    peak = max(
-        (r["gsi"] for run in runs for r in run.rows if _is_main(r) and r["operator"] == "G1"),
         default=1.0,
     )
     for i, run in enumerate(runs):
@@ -319,8 +436,16 @@ def fig1_dose_response(runs: list[Run], out: Path) -> None:
                 if not g:
                     continue
                 c = TARGET_COLORS[t]
+                adm = run.admissible(t)
                 ax.fill_between(g, lo, hi, color=c, alpha=BAND_ALPHA, lw=0, zorder=2)
-                ax.plot(g, v, color=c, marker=TARGET_MARKERS[t], zorder=3, clip_on=True)
+                ax.plot(
+                    g,
+                    v,
+                    color=c,
+                    zorder=3,
+                    **_line_kw(adm),
+                    **_marker_kw(c, TARGET_MARKERS[t], adm),
+                )
                 ends.append((g[-1], v[-1], t))
             _gap_axis(ax, gaps)
             ax.set_ylim(0, ymax * 1.04)
@@ -340,45 +465,57 @@ def fig1_dose_response(runs: list[Run], out: Path) -> None:
                 ax.set_xlabel(GAP_LABEL)
             _end_labels(ax, ends)
             if (i, j) == (0, 0):
-                _ref_label(ax, "equal to 20 real mutations", x=100)
+                ax.text(
+                    0.02,
+                    0.84,
+                    "dashed line: equal to 20 real mutations",
+                    transform=ax.transAxes,
+                    va="top",
+                    fontsize=7.5,
+                    color=TEXT_2,
+                )
     fig.supylabel(GSI_LABEL, fontsize=9)
-    fig.suptitle(
-        f"Chain-break gaps shift scores by up to {peak:.1f}x the effect of 20 real mutations",
-        fontsize=11,
-        fontweight="bold",
-        x=0.01,
-        ha="left",
+    _headline(
+        fig,
+        "A content-free change to position indices moves ESM-2's score several times "
+        "more than 20 real substitutions",
+        "Shown for MHC at 150M and 650M, the conditions whose estimator passes its sanity "
+        "check; peptide and TCR spans are shown but not admissible.",
+        caption=_ci_caption(runs) + " Shaded bands are 95% intervals.",
+        legend=True,
     )
-    _target_legend(fig)
     _save(fig, out, "fig1_dose_response")
 
 
 # ---------------------------------------------------------------- figure 2
 
 
-def _scale_axes(ax, runs: list[Run], series: dict, ylabel: str, ref=None, pending=True) -> None:
-    """One line per target against model size on a log axis, with CI error bars."""
+def _scale_axes(ax, runs: list[Run], series: dict, ylabel: str) -> None:
+    """One line per target against model size on a log axis, with CI error bars.
+
+    `series[target]` is a list of (x, y, lo, hi, admissible). A segment is solid only when
+    both of its endpoints are admissible.
+    """
     for t in TARGETS:
         pts = series.get(t, [])
         if not pts:
             continue
-        xs, ys, lo, hi = zip(*pts, strict=True)
         c = TARGET_COLORS[t]
-        ax.plot(xs, ys, color=c, marker=TARGET_MARKERS[t], zorder=3)
-        ax.errorbar(
-            xs,
-            ys,
-            yerr=[
-                [y - a for y, a in zip(ys, lo, strict=True)],
-                [b - y for y, b in zip(ys, hi, strict=True)],
-            ],
-            fmt="none",
-            ecolor=c,
-            elinewidth=LINE_WIDTH,
-            capsize=3,
-            zorder=3,
-        )
-    sizes = sorted({r.params_m for r in runs} | set(EXPECTED_SIZES_M))
+        for a, b in zip(pts, pts[1:], strict=False):
+            ax.plot([a[0], b[0]], [a[1], b[1]], color=c, zorder=3, **_line_kw(a[4] and b[4]))
+        for x, y, lo, hi, adm in pts:
+            ax.errorbar(
+                [x],
+                [y],
+                yerr=[[y - lo], [hi - y]],
+                color=c,
+                elinewidth=LINE_WIDTH,
+                capsize=3,
+                zorder=3,
+                ls="none",
+                **_marker_kw(c, TARGET_MARKERS[t], adm),
+            )
+    sizes = sorted({r.params_m for r in runs})
     ax.set_xscale("log")
     ax.set_xlim(min(sizes) * 0.7, max(sizes) * 3.2)
     ax.set_xticks(sizes, [f"{s:g}M" for s in sizes])
@@ -386,27 +523,11 @@ def _scale_axes(ax, runs: list[Run], series: dict, ylabel: str, ref=None, pendin
     ax.set_xlabel("Model parameters (millions, log scale)")
     ax.set_ylabel(ylabel)
     ax.grid(False, axis="x")
-    if pending:
-        have = {r.params_m for r in runs}
-        for s in EXPECTED_SIZES_M:
-            if s not in have:
-                ax.axvline(s, color=MUTED, lw=1, ls=":", zorder=1)
-                ax.text(
-                    s * 0.93,
-                    0.97,
-                    f"{s:g}M pending",
-                    transform=ax.get_xaxis_transform(),
-                    rotation=90,
-                    ha="right",
-                    va="top",
-                    fontsize=8,
-                    color=TEXT_2,
-                )
 
 
-def fig2_scale(runs: list[Run], out: Path, gaps: tuple[int, int] = (50, 150)) -> None:
-    fig, axes = plt.subplots(1, 2, figsize=(8, 4.1), sharey=True)
-    lows, highs = [], []
+def fig2_scale(runs: list[Run], out: Path, gaps: tuple[int, int] = (25, 100)) -> None:
+    fig, axes = plt.subplots(1, 2, figsize=(8, 4.5), sharey=True)
+    highs = []
     for ax, gap in zip(axes, gaps, strict=True):
         series = {}
         for t in TARGETS:
@@ -414,9 +535,10 @@ def fig2_scale(runs: list[Run], out: Path, gaps: tuple[int, int] = (50, 150)) ->
             for run in runs:
                 r = run.get("G1", t, gap)
                 if r:
-                    pts.append((run.params_m * DODGE[t], r["gsi"], r["lo"], r["hi"]))
+                    pts.append(
+                        (run.params_m * DODGE[t], r["gsi"], r["lo"], r["hi"], run.admissible(t))
+                    )
             series[t] = pts
-            lows += [p[2] for p in pts]
             highs += [p[3] for p in pts]
         ax.axhline(1.0, color=MUTED, lw=1, ls=(0, (4, 3)), zorder=1)
         _scale_axes(ax, runs, series, GSI_LABEL if ax is axes[0] else "")
@@ -435,12 +557,19 @@ def fig2_scale(runs: list[Run], out: Path, gaps: tuple[int, int] = (50, 150)) ->
                 items.append((*pts[-1], t))
         _end_labels(ax, items)
         _ref_label(ax, "equal to 20 real mutations")
+    failing = sorted({r.label for r in runs if not r.admissible("MHC_HEAVY")})
     _headline(
         fig,
-        "Layout sensitivity does not diminish with model size",
-        "Steepest for the MHC target; TCRB is flat and PEPTIDE rises modestly.",
+        "Layout sensitivity decreases with model size but does not disappear",
+        "MHC at 150M and 650M, the admissible conditions; still about 5x the effect of 20 "
+        "real substitutions at 650M.",
+        caption=(
+            _ci_caption(runs)
+            + f"\nEstimator fails its sanity check for MHC at {', '.join(failing)} "
+            "and for PEPTIDE and TCRB at every size."
+        ),
+        legend=True,
     )
-    _target_legend(fig)
     _save(fig, out, "fig2_scale")
 
 
@@ -465,20 +594,23 @@ def fig3_absolute_scale(runs: list[Run], out: Path) -> None:
             c1 = _c1(run, t)
             ax.axhline(c1, color=MUTED, lw=1, ls=(0, (4, 3)), zorder=1)
             ends = [(max(gaps), c1, "C1 n=20")]
-            for op, fill in (("G1", c), ("G2", SURFACE)):
+            adm = run.admissible(t)
+            for op in ("G1", "G2"):
                 g, v, _, _ = _gap_series(run, op, t, "shift")
                 if not g:
                     continue
+                # G2 is drawn thinner and lighter so that dash and hollow stay free to mark
+                # estimator admissibility.
+                weak = op == "G2"
                 ax.plot(
                     g,
                     v,
                     color=c,
-                    marker=TARGET_MARKERS[t],
-                    markerfacecolor=fill,
-                    markeredgecolor=c,
-                    ls="-" if op == "G1" else (0, (1, 1.5)),
+                    lw=1.0 if weak else LINE_WIDTH,
+                    alpha=0.6 if weak else 1.0,
                     zorder=3,
-                    clip_on=True,
+                    **_line_kw(adm),
+                    **_marker_kw(c, TARGET_MARKERS[t], adm),
                 )
                 ends.append((g[-1], v[-1], op))
             _gap_axis(ax, gaps)
@@ -497,22 +629,18 @@ def fig3_absolute_scale(runs: list[Run], out: Path) -> None:
         axes[0][j].set_ylim(0, top * 1.06)
     # Shared y-limits are only final once every panel is drawn.
     for ax, ends in labels:
-        _end_labels(ax, ends, min_gap=8)
+        _end_labels(ax, ends, min_gap=11)
     _headline(
         fig,
         "Absolute shifts are small for the peptide and TCR targets, but not for MHC",
         "GSI is a ratio of two small quantities except in the MHC panels, "
         "where the shift is large outright.",
-        bottom=0.035,
-    )
-    fig.text(
-        0.01,
-        0.0,
-        "C1 n=20 (dashed gray): median |shift| from 20 real substitutions, the GSI "
-        "denominator. Solid: G1; hollow and dotted: G2. Y-axis is shared down each column.",
-        fontsize=8,
-        color=TEXT_2,
-        va="bottom",
+        caption=(
+            "C1 n=20 (dashed gray): median |shift| from 20 real substitutions, the GSI "
+            "denominator. G1 full weight, G2 thinner and lighter.\n"
+            "Dashed with hollow markers: estimator fails its sanity check (PEPTIDE and TCRB "
+            "at every size, MHC at 35M). Y-axis is shared down each column."
+        ),
     )
     _save(fig, out, "fig3_absolute_scale")
 
@@ -530,9 +658,11 @@ def fig4_discrimination(runs: list[Run], out: Path) -> None:
         for run in runs:
             a = run.nsi["discrimination"].get(t, {}).get("true", {}).get("auroc")
             if a:
-                pts.append((run.params_m * DODGE[t], a["value"], a["ci_lo"], a["ci_hi"]))
+                pts.append(
+                    (run.params_m * DODGE[t], a["value"], a["ci_lo"], a["ci_hi"], run.admissible(t))
+                )
         series[t] = pts
-    fig, ax = plt.subplots(figsize=(6.6, 4.2))
+    fig, ax = plt.subplots(figsize=(7.2, 4.4))
     ax.axhline(0.5, color=MUTED, lw=1, ls=(0, (4, 3)), zorder=1)
     _scale_axes(ax, runs, series, "Binder-vs-decoy AUROC (0.5 = chance)")
     allv = [p[k] for pts in series.values() for p in pts for k in (2, 3)]
@@ -551,8 +681,10 @@ def fig4_discrimination(runs: list[Run], out: Path) -> None:
         fig,
         "Binder/decoy separation is at or near chance for every model and target",
         "No AUROC exceeds 0.60; the strongest, MHC at 150M, is 0.57 (token dropout on).",
+        caption="AUROC intervals are example-level bootstrap; for MHC_HEAVY they are too narrow "
+        "(few distinct alleles).",
+        legend=True,
     )
-    _target_legend(fig)
     _save(fig, out, "fig4_discrimination")
 
 
@@ -575,11 +707,11 @@ def fig5_inertness(runs: list[Run], out: Path) -> None:
             ax.plot(
                 [v],
                 [y + dy],
-                marker=marker,
                 color=TARGET_COLORS[t],
                 ls="none",
                 markersize=MARKER_SIZE,
                 zorder=3,
+                **_marker_kw(TARGET_COLORS[t], marker, run.admissible(t)),
             )
         ax.text(0.001, y, "G1 0.0, G2 0.0 nats", va="center", fontsize=8, color=TEXT_2)
     ax.set_yticks(ys, [f"{run.label}  {t}" for run, t in rows])
@@ -594,9 +726,16 @@ def fig5_inertness(runs: list[Run], out: Path) -> None:
         handles=[
             Line2D([], [], color=TEXT_2, marker="o", ls="none", label="G1"),
             Line2D([], [], color=TEXT_2, marker="D", ls="none", label="G2"),
+            Line2D(
+                [],
+                [],
+                ls="none",
+                label="hollow: fails sanity check",
+                **_marker_kw(TEXT_2, "o", False),
+            ),
         ],
         loc="upper right",
-        ncol=2,
+        ncol=1,
     )
     fig.suptitle(
         "Gap 0 leaves scores unchanged: median |shift| is exactly 0.0 nats"
@@ -618,19 +757,21 @@ def _cell(r: dict | None) -> str:
 
 
 def write_table1(runs: list[Run], out: Path, gaps: tuple[int, ...] = (1, 25, 150)) -> None:
-    head = ["Model", "Target"]
+    head = ["Model", "Target", "Estimator passes"]
     head += [f"{op} gap {g}" for op in ("G1", "G2") for g in gaps]
     head.append("C1 denominator (nats)")
     lines = [
         "Table 1. GSI as `value [95% CI lo, hi]`; token dropout on, in-distribution gaps only. "
+        "MHC_HEAVY intervals are cluster bootstrap over alleles, others example-level. "
+        "Only rows with Estimator passes = yes support a claim. "
         "The last column is the median |shift| from 20 real substitutions.",
         "",
         "| " + " | ".join(head) + " |",
-        "|" + "|".join(["---"] * 2 + ["---:"] * (len(head) - 2)) + "|",
+        "|" + "|".join(["---"] * 3 + ["---:"] * (len(head) - 3)) + "|",
     ]
     for run in runs:
         for t in TARGETS:
-            cells = [f"ESM-2 {run.label}", t]
+            cells = [f"ESM-2 {run.label}", t, "yes" if run.admissible(t) else "no"]
             cells += [_cell(run.get(op, t, g)) for op in ("G1", "G2") for g in gaps]
             cells.append(f"{_c1(run, t):.4f}")
             lines.append("| " + " | ".join(cells) + " |")

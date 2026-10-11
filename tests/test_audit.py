@@ -186,3 +186,23 @@ def test_nsi_withheld_when_binder_decoy_gap_is_unresolved():
     resolved = orig.copy()
     resolved[labels == 1] += 5.0
     assert compute_metrics(resolved, shifted, labels, np.full(60, 12.0), **kw)["nsi"]["value"]
+
+
+def test_allele_balanced_sampling_caps_each_allele_and_picks_max_neff_cap():
+    from collections import Counter
+
+    from cla.eval.audit import allele_balanced_subsample, choose_allele_cap
+
+    counts = {"A": 500, "B": 40, "C": 30, "D": 3}
+    cap, info = choose_allele_cap(counts, (63, 80))
+    # cap 20 totals 63, the smallest total inside the range; larger caps lose n_eff.
+    assert cap == 20 and info["total"] == 63
+
+    specs = [
+        ChainSpec((Chain(Role.PEPTIDE, "AAAA"),), f"{a}-{i}", 1, "AAAA", a, "t")
+        for a, n in counts.items()
+        for i in range(n)
+    ]
+    drawn = allele_balanced_subsample(specs, cap, np.random.default_rng(0))
+    assert Counter(s.mhc_allele for s in drawn) == {"A": 20, "B": 20, "C": 20, "D": 3}
+    assert len({s.example_id for s in drawn}) == len(drawn)

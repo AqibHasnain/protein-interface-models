@@ -166,6 +166,58 @@ def stratified_subsample(
     return chosen
 
 
+def kish_n_eff(counts: Any) -> float:
+    """Kish effective sample size of cluster sizes: (sum n)^2 / sum n^2."""
+    n = np.asarray(list(counts), dtype=float)
+    return float(n.sum() ** 2 / np.sum(n**2))
+
+
+def choose_allele_cap(
+    counts: dict[str, int], total_range: tuple[int, int]
+) -> tuple[int, dict[str, Any]]:
+    """Per-allele cap that maximizes Kish n_eff with the sample total inside `total_range`.
+
+    Capping at `k` takes min(count, k) from each allele, so n_eff falls as `k` grows while the
+    total rises. The range bounds the total from below (enough pairs for a median ratio) and
+    above (scoring cost), and the cap is picked inside it by n_eff alone.
+    """
+    lo, hi = total_range
+    best: tuple[float, int, int] | None = None
+    for k in range(1, max(counts.values()) + 1):
+        sizes = [min(c, k) for c in counts.values()]
+        total = sum(sizes)
+        if lo <= total <= hi:
+            cand = (kish_n_eff(sizes), -k, total)
+            best = cand if best is None or cand > best else best
+        if total > hi:
+            break
+    if best is None:
+        raise ValueError(f"no per-allele cap gives a total in {total_range}")
+    n_eff, neg_k, total = best
+    return -neg_k, {"n_eff": n_eff, "total": total, "total_range": list(total_range)}
+
+
+def allele_balanced_subsample(
+    specs: list[ChainSpec], cap: int, rng: np.random.Generator
+) -> list[ChainSpec]:
+    """Draw up to `cap` specs per distinct MHC allele, uniformly within the allele.
+
+    Proportional draws are dominated by HLA-A*02:01, which leaves the cluster bootstrap
+    over alleles with an effective sample size near 2. Pools are sorted by example_id so the
+    draw does not depend on file order.
+    """
+    by_allele: dict[str, list[ChainSpec]] = {}
+    for s in sorted(specs, key=lambda s: s.example_id):
+        if s.mhc_allele:
+            by_allele.setdefault(s.mhc_allele, []).append(s)
+    chosen: list[ChainSpec] = []
+    for allele in sorted(by_allele):
+        pool = by_allele[allele]
+        idx = np.sort(rng.choice(len(pool), size=min(cap, len(pool)), replace=False))
+        chosen.extend(pool[int(i)] for i in idx)
+    return chosen
+
+
 # --------------------------------------------------------------------------- token dropout
 
 
@@ -1114,9 +1166,21 @@ def run_audit(
     # ---- sample
     shards = split_specs(specs)
     shard_sizes = {k: len(v) for k, v in shards.items()}
-    sample = stratified_subsample(
-        shards, int(config["n_examples"]), np.random.default_rng([seed, 1])
-    )
+    sampling = config.get("sampling", {"mode": "stratified"})
+    sampling_info: dict[str, Any] = {"mode": sampling["mode"]}
+    if sampling["mode"] == "allele_balanced":
+        counts = Counter(s.mhc_allele for s in specs if s.mhc_allele)
+        cap, info = choose_allele_cap(dict(counts), tuple(sampling["total_range"]))
+        shard_by_id = {s.example_id: k for k, v in shards.items() for s in v}
+        drawn = allele_balanced_subsample(specs, cap, np.random.default_rng([seed, 1]))
+        sample = [(s, shard_by_id[s.example_id]) for s in drawn]
+        sampling_info |= {"per_allele_cap": cap, "n_alleles_available": len(counts), **info}
+    elif sampling["mode"] == "stratified":
+        sample = stratified_subsample(
+            shards, int(config["n_examples"]), np.random.default_rng([seed, 1])
+        )
+    else:
+        raise ValueError(f"unknown sampling mode {sampling['mode']!r}")
     positives_specs = [s for s, _ in sample]
     shard_of = {s.example_id: k for s, k in sample}
     negatives = make_mismatched_negatives(
@@ -1277,6 +1341,7 @@ def run_audit(
             "n_per_positive": int(config.get("negatives_per_positive", 1)),
         },
         "data": {
+            "sampling": sampling_info,
             "n_specs_total": len(specs),
             "shard_sizes": shard_sizes,
             "n_positive_sampled": len(positives_specs),
@@ -1289,6 +1354,7 @@ def run_audit(
         "examples": {
             "example_id": [s.example_id for s in examples],
             "label": [int(s.label) for s in examples],
+            "mhc_allele": [s.mhc_allele for s in examples],
             "shard": [shard_of[s.example_id] for s in examples],
             "cdr3b_length": cdr3b_len.astype(int).tolist(),
             "total_tokens": [int(r.input_ids.shape[0]) for r in originals],

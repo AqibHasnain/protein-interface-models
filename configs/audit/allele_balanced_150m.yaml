@@ -1,0 +1,19 @@
+extends: esm2_150m.yaml
+run_name: allele-balanced-esm2-150m
+# Up to a per-allele cap of examples from every distinct MHC allele; the cap is chosen to
+# maximize Kish n_eff with the positive total inside total_range.
+sampling:
+  mode: allele_balanced
+  total_range: [600, 1000]
+operators: []
+separator_counts: []
+geometry:
+  operators: [G1]
+  gaps: [0, 1, 5, 25, 100]
+  out_of_distribution: []
+controls:
+  c1_n_mutations: [20]
+  gsi_denominator_n: 20
+headline_targets: [MHC_HEAVY]
+scoring:
+  targets: [[MHC_HEAVY]]
