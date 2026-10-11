@@ -250,7 +250,7 @@ def train_arm(arm: str, *, device: str, hparams: dict, out_root: Path = OUT_ROOT
         nn.utils.clip_grad_norm_(params, hp["grad_clip"])
         opt.step()
         sched.step()
-        losses.append(float(loss))
+        losses.append(loss.item())
         t_train += time.time() - t0
         if step % 10 == 0 or step == 1:
             events.log("train", step=step, loss=losses[-1], lr=sched.get_last_lr()[0])

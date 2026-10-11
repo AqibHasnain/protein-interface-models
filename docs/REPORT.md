@@ -267,10 +267,10 @@ the decision log and are not regenerated from `results/`.
    reference, fixed before the rerun and evaluated blind, is the first item of future work.
 3. **Untrained backbone.** Zero-shot ESM-2 does not discriminate binders. Nothing is shown about a
    fine-tuned interface model, which is the claim that would matter.
-4. **Phase 2 ran at dev-loop scale.** 300 steps per arm; the masked-LM arms are one seed each. H2
-   is tested on the binding classifier at three seeds per arm (8.7), and the answer is negative, but
-   with every AUROC interval covering 0.5 the test is underpowered as well as negative. A larger
-   backbone, more steps or validated negatives could all change it.
+4. **Phase 2 training is one seed per masked-LM arm.** 300 steps per arm at both sizes. The
+   binding classifier has three seeds per arm at both sizes, so H2 is tested, but the masked-LM arm
+   ordering in 8.6 rests on single runs and the margin differences there would need seeds to carry a
+   confidence interval.
 5. **650M main sample is thin.** n = 250, 9 alleles, effective sample size 1.96, five gaps. The
    balanced run at 51 alleles supersedes it and reverses its gap-100 reading.
 6. **Allele concentration.** Effective sample size 1.92 in the main runs. The balanced runs at 51
@@ -380,7 +380,8 @@ because one of their conclusions turned out to be an artifact of the size.
 Standard errors on the deltas are 0.005 to 0.014 nats, so the loss differences are resolved. All six
 arms completed 300 steps at 650M. Three things follow.
 
-**The module's cost is in the MHC margin, and it scales with how much of the module is switched on.**
+**The module's cost is in the MHC margin, and it scales with how much of the module is switched on**
+(`fig9_margin_cost.png`).
 Against A0's +0.751: the chain embedding alone is free (+0.749), the offset alone costs 0.18, the
 per-chain reset alone costs 0.34, all three together cost 0.70, and adding order augmentation drives
 the margin negative at -0.149. A negative margin means the scorer does worse than a uniform prior
@@ -537,8 +538,9 @@ H2 is not. Trained on binding at two model sizes and three seeds each, no arm is
 predictor on either held-out shard. The deeper reason is that the artifact needs an offset of 25 or
 more to appear, and the nuisance that motivated the project, CDR3-beta length variation, moves
 offsets by 3 to 4. Phase 2 measured no length-attributable effect in the baseline, so the module has
-nothing to fix on that axis, and the masked-LM arms that most reduce permutation sensitivity have
-degraded into unusable scorers. The recommendation is against adopting a chain-aware positional
+nothing to fix on that axis. Training the module costs MHC scoring margin in proportion to how much
+of it is enabled, from +0.751 at baseline to +0.054 for the full module and -0.149 with order
+augmentation, a cost that held-out masked-LM loss does not show. The recommendation is against adopting a chain-aware positional
 module for this setting.
 
 One finding points the other way and is kept because it replicated. Paired by seed, the module

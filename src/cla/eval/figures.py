@@ -1057,6 +1057,113 @@ def fig8_h2_paired(out: Path, results: Path = Path("results/phase2/h2_paired")) 
     _save(fig, out, "fig8_h2_paired")
 
 
+MLM_ARM_LABELS = {
+    "A0": "A0 baseline",
+    "A1": "A1 chain embedding",
+    "A3": "A3 offset 50",
+    "A2": "A2 per-chain reset",
+    "A4": "A4 full module",
+    "A5": "A5 full + augmentation",
+}
+
+
+def fig9_margin_cost(out: Path, results: Path = Path("results/phase2/training_650m")) -> None:
+    """MHC scoring margin against held-out MLM loss, per arm.
+
+    The two panels disagree, which is the point: held-out loss calls the full module free
+    while the margin shows it spending almost all of the scorer's headroom.
+    """
+    path = results / "summary.tsv"
+    if not path.exists():
+        return
+    with path.open() as fh:
+        rows = {r["arm"]: r for r in csv.DictReader(fh, delimiter="\t")}
+    arms = [a for a in MLM_ARM_LABELS if a in rows]
+    if len(arms) < 2:
+        return
+
+    fig, (ax, ax2) = plt.subplots(1, 2, figsize=(10.0, 4.4), gridspec_kw={"wspace": 0.3})
+    ys = list(range(len(arms)))[::-1]
+    for y, arm in zip(ys, arms, strict=True):
+        margin = float(rows[arm]["mhc_margin"])
+        # One hue for the baseline, one for anything that enables part of the module.
+        color = TARGET_COLORS["PEPTIDE"] if arm == "A0" else TARGET_COLORS["MHC_HEAVY"]
+        if margin < 0:
+            color = TARGET_COLORS["TCRB"]
+        ax.plot([0, margin], [y, y], color=color, lw=2.5, solid_capstyle="round", zorder=3)
+        ax.plot(
+            [margin],
+            [y],
+            marker="o",
+            markersize=7,
+            color=color,
+            markeredgecolor=SURFACE,
+            markeredgewidth=1.2,
+            zorder=4,
+        )
+        # A negative bar runs left toward the arm names, so its label goes on the zero side.
+        ax.annotate(
+            f"{margin:+.3f}",
+            (max(margin, 0.0), y),
+            xytext=(8, 0),
+            textcoords="offset points",
+            va="center",
+            ha="left",
+            fontsize=8.5,
+            color=TEXT_2,
+        )
+        delta = float(rows[arm]["allele_delta_vs_a0"] or 0)
+        ax2.plot([0, delta], [y, y], color=MUTED, lw=2.5, solid_capstyle="round", zorder=3)
+        ax2.plot(
+            [delta],
+            [y],
+            marker="o",
+            markersize=7,
+            color=MUTED,
+            markeredgecolor=SURFACE,
+            markeredgewidth=1.2,
+            zorder=4,
+        )
+        ax2.annotate(
+            f"{delta:+.3f}",
+            (delta, y),
+            xytext=(8 if delta >= 0 else -8, 0),
+            textcoords="offset points",
+            va="center",
+            ha="left" if delta >= 0 else "right",
+            fontsize=8.5,
+            color=TEXT_2,
+        )
+
+    for a, label, lo, hi in (
+        (ax, "MHC margin over uniform prior (nats)", -0.3, 1.05),
+        (ax2, "Held-out allele MLM loss, delta vs A0 (nats)", -0.17, 0.44),
+    ):
+        a.axvline(0, color=AXIS, lw=1, zorder=1)
+        a.set_yticks(ys, [MLM_ARM_LABELS[arm] for arm in arms], fontsize=8.5)
+        a.set_ylim(-0.7, len(arms) - 0.3)
+        a.set_xlim(lo, hi)
+        a.grid(False, axis="y")
+        a.grid(True, axis="x")
+        a.set_xlabel(label, fontsize=8.5)
+    ax.set_title("What the module costs", fontsize=9.5, color=TEXT_2, loc="left")
+    ax2.set_title("What held-out loss reports", fontsize=9.5, color=TEXT_2, loc="left")
+
+    fig.set_layout_engine("constrained")
+    _headline(
+        fig,
+        "Held-out loss calls the full module free while it spends the scorer's whole margin",
+        "ESM-2 650M, LoRA r=16, 12,172,800 trainable parameters in every arm, 300 steps, one "
+        "seed. Margin is the MHC score above a uniform prior over 20 amino acids; below zero "
+        "the scorer is worse than guessing.",
+        "A4 is 0.039 nats better than baseline on held-out-allele loss and keeps 0.054 of the\n"
+        "baseline's 0.751 margin. The cost tracks how much of the module is enabled: the chain\n"
+        "embedding is free, per-chain reset is the most expensive single component.\n"
+        "One seed per arm, so the ordering is suggestive and the gaps carry no interval.",
+    )
+    _save(fig, out, "fig9_margin_cost")
+
+
 # ---------------------------------------------------------------- table
 
 
@@ -1105,6 +1212,7 @@ def main(argv: list[str] | None = None) -> int:
     fig6_allele_balanced(args.results, out)
     fig7_h2_classifier(out)
     fig8_h2_paired(out)
+    fig9_margin_cost(out)
     write_table1(runs, out)
     print(f"wrote figures and table1.md for {[r.name for r in runs]} to {out}")
     return 0
