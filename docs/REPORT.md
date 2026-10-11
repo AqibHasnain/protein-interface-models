@@ -161,8 +161,11 @@ median nats, n = 300 (`context_gain.json`):
 
 At 150M and 650M the term is positive and agrees across arms. At 35M it changes sign, consistent
 with an unusable estimator. The complex-minus-alone comparison is confounded by unequal mask
-fractions at 650M (-0.03 on, +0.54 off) and is not used. This draw holds 11 distinct MHC sequences,
-so only sign and rough size are relied on. The artifact therefore acts on real cross-chain computation.
+fractions at 650M (-0.03 on, +0.54 off) and is not used.
+
+Cluster intervals over alleles are 3.5 to 13.7 times wider than the example-level ones and still
+exclude zero in all four 150M and 650M cells. The tightest is 650M with dropout on: median 0.190,
+interval [0.033, 0.217]. The artifact therefore acts on real cross-chain computation.
 
 ### 4.6 Scale
 
@@ -235,17 +238,22 @@ the decision log and are not regenerated from `results/`.
    token dropout.
 5. **Allele concentration.** Effective sample size 1.92 in the main runs. The balanced run covers 150M
    only and reports no per-allele values.
-6. **TCR chains are CDR3 loops only.** VDJdb has no full variable domains, so TCR length variation is
+6. **The cluster intervals are themselves optimistic.** A percentile bootstrap over 9 to 14 clusters,
+   one of which is 69% of the sample, has poor coverage. The data supports the statement that G1 at
+   gaps 25 and 100 sits well above 1.0 at 150M and 650M with token dropout on. It does not support
+   the specific bounds, and the example-level intervals it replaced were worse still. The
+   allele-balanced run at 51 alleles is the stronger evidence and exists only at 150M.
+7. **TCR chains are CDR3 loops only.** VDJdb has no full variable domains, so TCR length variation is
    far smaller than in a real receptor, and operator P3 is not applicable.
-7. **Scope.** MHC trimmed to alpha-1/alpha-2, class I only, one backbone family. Class II,
+8. **Scope.** MHC trimmed to alpha-1/alpha-2, class I only, one backbone family. Class II,
    antibodies and other architectures are untested.
-8. **Decoys are mismatched pairs.** They are not validated non-binders. The chance-level AUROC
+9. **Decoys are mismatched pairs.** They are not validated non-binders. The chance-level AUROC
    belongs to the model, since real negatives would not give an untrained ESM-2 a signal.
-9. **Metrics defined after pilot data.** GSI, the admissibility check and NSI-C followed the
+10. **Metrics defined after pilot data.** GSI, the admissibility check and NSI-C followed the
    60-example 35M pilot.
-10. **Estimator coverage.** MHC_HEAVY windowed scoring covers at most 60 of 180 residues.
-11. **No wet-lab validation,** and no claim about TCR design or binding accuracy.
-12. **Unverifiable numbers.** The unigram comparison, the 35M defect measurements and the pilot
+11. **Estimator coverage.** MHC_HEAVY windowed scoring covers at most 60 of 180 residues.
+12. **No wet-lab validation,** and no claim about TCR design or binding accuracy.
+13. **Unverifiable numbers.** The unigram comparison, the 35M defect measurements and the pilot
     tables exist only in the decision log rather than in `results/`.
 
 ## 8. Conclusion and what Phase 2 must establish

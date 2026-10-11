@@ -1,4 +1,7 @@
 model	population	n_examples	n_clusters	largest_cluster	largest_cluster_fraction	kish_n_eff
 35M	audit_geometry	1000	14	HLA-A*02:01	0.691	1.92
+35M	context_gain	300	11	HLA-A*02:01	0.713	1.83
 150M	audit_geometry	1000	14	HLA-A*02:01	0.691	1.92
+150M	context_gain	300	11	HLA-A*02:01	0.713	1.83
 650M	audit_geometry	250	9	HLA-A*02:01	0.688	1.96
+650M	context_gain	300	11	HLA-A*02:01	0.713	1.83
