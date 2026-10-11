@@ -1,4 +1,4 @@
-# Chain-layout sensitivity in concatenation-based protein interface models: Phase 1 report
+# Chain-layout sensitivity in concatenation-based protein interface models
 
 ## Summary
 
@@ -7,7 +7,7 @@ to the position indices at chain breaks, with every token bitwise identical, mov
 10.5 times as far as twenty real amino-acid substitutions (GSI; cluster-bootstrap lower bounds 1.96
 to 9.78). These are the only two of nine model-target conditions whose estimator passes its pre-set
 sanity check. Peptide and CDR3-beta fail it at every size and support no claim. The backbone is
-untrained for binding. Gate G1 reads PROCEED on the admissible MHC conditions alone. Four earlier
+untrained for binding. Gate G1 reads PROCEED on the admissible MHC conditions alone. Six earlier
 claims were withdrawn (section 6).
 
 Phase 2 then found two things. The chain-aware module does not produce an above-chance binding
@@ -19,8 +19,12 @@ length-attributable effect on the MHC score (excess over a shuffled-length null 
 residue, interval [-0.0013, 0.0018]). Natural CDR3-beta length varies by 3 to 4 residues, which
 falls in the small-gap regime where Phase 1 already measured GSI at or below 1.8. The sensitivity is
 real and large at offsets of 25 or more, and receptors do not generate offsets that large. On this
-evidence a reader deciding whether to adopt a chain-aware positional module should decline. Section
-8 gives the Phase 2 results in full.
+evidence a reader deciding whether to adopt a chain-aware positional module should decline.
+
+Training the module is also not free, and held-out masked-LM loss does not show the cost. At 650M the
+full module leaves 0.054 nats of the baseline's 0.751 margin over a uniform prior on MHC scoring,
+while reporting 0.039 nats *better* held-out loss than baseline. Section 8 gives the Phase 2 results
+in full.
 
 ## 1. Motivation and framing
 
