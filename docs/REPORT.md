@@ -241,27 +241,31 @@ the decision log and are not regenerated from `results/`.
    reference, fixed before the rerun and evaluated blind, is the first item of future work.
 3. **Untrained backbone.** Zero-shot ESM-2 does not discriminate binders. Nothing is shown about a
    fine-tuned interface model, which is the claim that would matter.
-4. **650M is thin.** n = 250, 9 alleles, effective sample size 1.96, five gaps, and no completed
+4. **Phase 2 is a dev loop, not the planned experiment.** 35M, one seed, 300 steps, no
+   learning-rate check, no 650M arms, and the plan's reported H2 metric (held-out binding AUROC)
+   does not exist because the backbone cannot discriminate binding. The arms show the harness works
+   and the module trains without diverging. They do not test H2.
+5. **650M is thin.** n = 250, 9 alleles, effective sample size 1.96, five gaps, and no completed
    balanced run. The scale direction rests on the smallest sample, and its gap-100 value depends on
    token dropout.
-5. **Allele concentration.** Effective sample size 1.92 in the main runs. The balanced run covers 150M
+6. **Allele concentration.** Effective sample size 1.92 in the main runs. The balanced run covers 150M
    only and reports no per-allele values.
-6. **The cluster intervals are themselves optimistic.** A percentile bootstrap over 9 to 14 clusters,
+7. **The cluster intervals are themselves optimistic.** A percentile bootstrap over 9 to 14 clusters,
    one of which is 69% of the sample, has poor coverage. The data supports the statement that G1 at
    gaps 25 and 100 sits well above 1.0 at 150M and 650M with token dropout on. It does not support
    the specific bounds, and the example-level intervals it replaced were worse still. The
    allele-balanced run at 51 alleles is the stronger evidence and exists only at 150M.
-7. **TCR chains are CDR3 loops only.** VDJdb has no full variable domains, so TCR length variation is
+8. **TCR chains are CDR3 loops only.** VDJdb has no full variable domains, so TCR length variation is
    far smaller than in a real receptor, and operator P3 is not applicable.
-8. **Scope.** MHC trimmed to alpha-1/alpha-2, class I only, one backbone family. Class II,
+9. **Scope.** MHC trimmed to alpha-1/alpha-2, class I only, one backbone family. Class II,
    antibodies and other architectures are untested.
-9. **Decoys are mismatched pairs.** They are not validated non-binders. The chance-level AUROC
+10. **Decoys are mismatched pairs.** They are not validated non-binders. The chance-level AUROC
    belongs to the model, since real negatives would not give an untrained ESM-2 a signal.
-10. **Metrics defined after pilot data.** GSI, the admissibility check and NSI-C followed the
+11. **Metrics defined after pilot data.** GSI, the admissibility check and NSI-C followed the
    60-example 35M pilot.
-11. **Estimator coverage.** MHC_HEAVY windowed scoring covers at most 60 of 180 residues.
-12. **No wet-lab validation,** and no claim about TCR design or binding accuracy.
-13. **Unverifiable numbers.** The unigram comparison, the 35M defect measurements and the pilot
+12. **Estimator coverage.** MHC_HEAVY windowed scoring covers at most 60 of 180 residues.
+13. **No wet-lab validation,** and no claim about TCR design or binding accuracy.
+14. **Unverifiable numbers.** The unigram comparison, the 35M defect measurements and the pilot
     tables exist only in the decision log rather than in `results/`.
 
 ## 8. Phase 2: the fix, and why it is not warranted on this evidence
@@ -330,11 +334,43 @@ The baseline moves 0.561 nats [0.530, 0.590] under permutation and every arm red
 near-circular, since a reset layout presents the model with the same (token, position) multiset under
 any order; and of the arms that reduce sensitivity most, only offset 25 is still a usable scorer.
 
-### 8.6 Phase 2 verdict
+### 8.6 Training the arms, and gate G2
+
+ESM-2 35M on CPU, 300 steps at batch 16 over 4,800 examples, LoRA r=16 on attention and FFN,
+identical batches, masks, optimizer and schedule across arms, trainable parameters matched at
+1,661,760 by padding the arms that have no chain embedding. One seed, no learning-rate check.
+
+**Gate G2 failed on A4 and the arm was killed at step 30**, as the plan specifies. Loss was falling
+and not NaN, but the held-out-allele MHC margin dropped to -0.26, below the uniform prior, and
+length sensitivity was 0.0155 against A0's 0.0034 at the same step. The module presents positions the
+backbone has never seen and 30 LoRA steps do not repair the scorer. The gate was written to catch
+that and it did; the arm is reported killed rather than revived with a larger budget.
+
+| Arm | Held-out allele MLM loss | Delta vs A0 | Held-out epitope MLM loss | MHC margin |
+|---|---|---|---|---|
+| A0 | 2.443 | n/a | 2.451 | -0.024 |
+| A1 embedding | 2.345 | -0.098 | 2.347 | -0.091 |
+| A2 reset | 2.608 | +0.166 | 2.622 | -0.071 |
+| A3 offset 50 | 2.329 | -0.113 | 2.361 | -0.119 |
+| A4 full | killed at G2 | n/a | n/a | n/a |
+| A5 A4 plus augmentation | 2.295 | -0.148 | 2.439 | -0.097 |
+
+Every arm sits near the uniform prior of 2.9957 nats on held-out data while training loss reaches
+about 1.0, so the arms fit the training set and do not generalize. The 0.1 to 0.15 nat advantages of
+A1, A3 and A5 are small against that level and rest on one seed. Two results are firmer: per-chain
+reset alone is worse than baseline on both loss and sensitivity, and every arm including A0 ends with
+the MHC margin at or below zero, so LoRA at this scale damages the scorer regardless of the module.
+
+Length sensitivity does not separate the arms, because the shuffled null tracks the observed slope in
+each. A5's lower raw slope comes with a matching drop in its null floor, which agrees with 8.4.
+
+### 8.7 Phase 2 verdict
 
 The module does what it was designed to do on the permutation axis and costs score quality to do it.
 On the axis that motivated the project, native chain-length variation, there is no baseline effect
-for it to fix. The honest recommendation is against adopting it for this setting.
+for it to fix. Training at dev-loop scale neither rescues it nor condemns it: the arms are
+indistinguishable from baseline except per-chain reset, which is worse, and the full module failed
+its mid-training gate. The honest recommendation is against adopting it for this setting.
 
 What would change that: full-length TCR variable domains instead of CDR3 loops, where length varies
 by far more than 3 to 4 residues and could reach the offset regime where Phase 1 shows the model is
