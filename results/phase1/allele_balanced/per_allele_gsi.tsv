@@ -1,0 +1,409 @@
+model	token_dropout	gap	allele	n	gsi	ci_lo	ci_hi
+150M	dropout_on	25	HLA-A*01:01	27	7.69	5.24	19.19
+150M	dropout_on	25	HLA-A*02:01	27	8.37	5.64	14.73
+150M	dropout_on	25	HLA-A*03:01	27	6.75	4.07	10.54
+150M	dropout_on	25	HLA-A*11:01	27	6.15	3.05	10.23
+150M	dropout_on	25	HLA-A*24:02	27	5.96	3.01	20.45
+150M	dropout_on	25	HLA-A*68:01	27	14.02	5.87	18.16
+150M	dropout_on	25	HLA-B*07:02	27	6.31	4.06	12.44
+150M	dropout_on	25	HLA-B*08:01	27	4.85	3.53	8.70
+150M	dropout_on	25	HLA-B*15:01	27	5.66	4.56	9.06
+150M	dropout_on	25	HLA-B*27:05	27	12.05	6.14	36.88
+150M	dropout_on	25	HLA-B*35:01	27	6.34	4.23	11.07
+150M	dropout_on	25	HLA-B*37:01	27	9.06	4.44	12.76
+150M	dropout_on	25	HLA-B*40:01	27	5.78	5.25	13.01
+150M	dropout_on	25	HLA-B*57:01	27	8.04	4.98	15.20
+150M	dropout_on	25	HLA-C*12:02	27	7.78	4.69	11.64
+150M	dropout_on	25	HLA-E*01:03	27	3.14	2.24	5.35
+150M	dropout_on	25	HLA-B*35:08	21	6.63	4.07	8.95
+150M	dropout_on	25	HLA-B*44:02	21	14.05	7.83	26.81
+150M	dropout_on	25	HLA-A*30:02	19	5.13	2.73	9.21
+150M	dropout_on	25	HLA-B*27:01	17	3.39	2.31	5.60
+150M	dropout_on	25	HLA-B*51:01	14	7.74	5.03	26.61
+150M	dropout_on	25	HLA-B*18:01	12	5.91	2.44	7.54
+150M	dropout_on	25	HLA-B*42:01	8	8.78		
+150M	dropout_on	25	HLA-E*01:01	7	2.55		
+150M	dropout_on	25	HLA-B*35:42	6	4.63		
+150M	dropout_on	25	HLA-B*38:01	6	11.79		
+150M	dropout_on	25	HLA-C*08:02	6	4.69		
+150M	dropout_on	25	HLA-A*02:06	4	6.33		
+150M	dropout_on	25	HLA-A*29:02	4	7.39		
+150M	dropout_on	25	HLA-B*41:02	4	10.43		
+150M	dropout_on	25	HLA-B*44:05	3	19.02		
+150M	dropout_on	25	HLA-C*05:01	3	7.07		
+150M	dropout_on	25	HLA-A*68:02	2	1.30		
+150M	dropout_on	25	HLA-B*44:03	2	6.85		
+150M	dropout_on	25	HLA-C*01:02	2	7.61		
+150M	dropout_on	25	HLA-C*12:03	2	12.75		
+150M	dropout_on	25	HLA-A*02:256	1	26.88		
+150M	dropout_on	25	HLA-A*02:266	1	14.02		
+150M	dropout_on	25	HLA-A*25:01	1	6.04		
+150M	dropout_on	25	HLA-A*32:01	1	38.20		
+150M	dropout_on	25	HLA-B*15:18	1	2.15		
+150M	dropout_on	25	HLA-B*35:03	1	30.41		
+150M	dropout_on	25	HLA-B*51:193	1	12.99		
+150M	dropout_on	25	HLA-B*53:01	1	1.95		
+150M	dropout_on	25	HLA-B*57:06	1	9.40		
+150M	dropout_on	25	HLA-B*81:01	1	9.29		
+150M	dropout_on	25	HLA-C*03:03	1	3.02		
+150M	dropout_on	25	HLA-C*03:04	1	9.65		
+150M	dropout_on	25	HLA-C*06:02	1	11.01		
+150M	dropout_on	25	HLA-C*07:01	1	2.61		
+150M	dropout_on	25	HLA-C*14:02	1	0.46		
+150M	dropout_on	100	HLA-A*01:01	27	11.88	8.09	29.92
+150M	dropout_on	100	HLA-A*02:01	27	9.54	6.48	16.67
+150M	dropout_on	100	HLA-A*03:01	27	9.46	5.62	15.03
+150M	dropout_on	100	HLA-A*11:01	27	10.62	5.16	17.62
+150M	dropout_on	100	HLA-A*24:02	27	9.17	4.62	31.12
+150M	dropout_on	100	HLA-A*68:01	27	20.89	8.57	26.58
+150M	dropout_on	100	HLA-B*07:02	27	11.68	7.66	22.96
+150M	dropout_on	100	HLA-B*08:01	27	8.98	6.50	15.93
+150M	dropout_on	100	HLA-B*15:01	27	10.15	8.37	16.50
+150M	dropout_on	100	HLA-B*27:05	27	18.19	9.27	56.53
+150M	dropout_on	100	HLA-B*35:01	27	11.05	7.45	18.94
+150M	dropout_on	100	HLA-B*37:01	27	15.16	7.59	21.31
+150M	dropout_on	100	HLA-B*40:01	27	8.64	7.80	19.29
+150M	dropout_on	100	HLA-B*57:01	27	12.68	7.92	24.03
+150M	dropout_on	100	HLA-C*12:02	27	14.15	8.69	21.21
+150M	dropout_on	100	HLA-E*01:03	27	10.33	7.39	17.61
+150M	dropout_on	100	HLA-B*35:08	21	13.37	8.18	17.24
+150M	dropout_on	100	HLA-B*44:02	21	21.71	12.30	42.31
+150M	dropout_on	100	HLA-A*30:02	19	10.71	5.68	18.73
+150M	dropout_on	100	HLA-B*27:01	17	5.75	3.90	9.50
+150M	dropout_on	100	HLA-B*51:01	14	13.34	8.65	47.22
+150M	dropout_on	100	HLA-B*18:01	12	11.06	4.38	14.64
+150M	dropout_on	100	HLA-B*42:01	8	15.67		
+150M	dropout_on	100	HLA-E*01:01	7	7.47		
+150M	dropout_on	100	HLA-B*35:42	6	7.80		
+150M	dropout_on	100	HLA-B*38:01	6	19.97		
+150M	dropout_on	100	HLA-C*08:02	6	10.00		
+150M	dropout_on	100	HLA-A*02:06	4	7.68		
+150M	dropout_on	100	HLA-A*29:02	4	12.95		
+150M	dropout_on	100	HLA-B*41:02	4	17.27		
+150M	dropout_on	100	HLA-B*44:05	3	29.78		
+150M	dropout_on	100	HLA-C*05:01	3	17.34		
+150M	dropout_on	100	HLA-A*68:02	2	1.77		
+150M	dropout_on	100	HLA-B*44:03	2	10.19		
+150M	dropout_on	100	HLA-C*01:02	2	13.82		
+150M	dropout_on	100	HLA-C*12:03	2	22.44		
+150M	dropout_on	100	HLA-A*02:256	1	35.09		
+150M	dropout_on	100	HLA-A*02:266	1	22.31		
+150M	dropout_on	100	HLA-A*25:01	1	10.36		
+150M	dropout_on	100	HLA-A*32:01	1	68.61		
+150M	dropout_on	100	HLA-B*15:18	1	4.68		
+150M	dropout_on	100	HLA-B*35:03	1	51.51		
+150M	dropout_on	100	HLA-B*51:193	1	22.14		
+150M	dropout_on	100	HLA-B*53:01	1	2.97		
+150M	dropout_on	100	HLA-B*57:06	1	15.97		
+150M	dropout_on	100	HLA-B*81:01	1	14.56		
+150M	dropout_on	100	HLA-C*03:03	1	5.48		
+150M	dropout_on	100	HLA-C*03:04	1	18.13		
+150M	dropout_on	100	HLA-C*06:02	1	25.64		
+150M	dropout_on	100	HLA-C*07:01	1	4.20		
+150M	dropout_on	100	HLA-C*14:02	1	0.82		
+150M	dropout_off	25	HLA-A*01:01	27	8.16	5.11	14.89
+150M	dropout_off	25	HLA-A*02:01	27	9.56	4.67	11.63
+150M	dropout_off	25	HLA-A*03:01	27	8.45	5.31	13.70
+150M	dropout_off	25	HLA-A*11:01	27	5.49	3.77	8.48
+150M	dropout_off	25	HLA-A*24:02	27	8.08	4.70	23.60
+150M	dropout_off	25	HLA-A*68:01	27	11.99	6.59	24.43
+150M	dropout_off	25	HLA-B*07:02	27	8.03	5.89	12.52
+150M	dropout_off	25	HLA-B*08:01	27	6.24	4.20	7.70
+150M	dropout_off	25	HLA-B*15:01	27	6.14	5.27	10.74
+150M	dropout_off	25	HLA-B*27:05	27	9.37	6.73	16.64
+150M	dropout_off	25	HLA-B*35:01	27	4.75	4.08	7.09
+150M	dropout_off	25	HLA-B*37:01	27	8.95	6.37	14.28
+150M	dropout_off	25	HLA-B*40:01	27	6.33	4.38	22.17
+150M	dropout_off	25	HLA-B*57:01	27	5.89	3.43	17.18
+150M	dropout_off	25	HLA-C*12:02	27	9.01	5.11	16.45
+150M	dropout_off	25	HLA-E*01:03	27	9.34	5.75	13.06
+150M	dropout_off	25	HLA-B*35:08	21	5.89	3.72	18.25
+150M	dropout_off	25	HLA-B*44:02	21	10.63	6.74	22.43
+150M	dropout_off	25	HLA-A*30:02	19	5.64	2.85	7.52
+150M	dropout_off	25	HLA-B*27:01	17	11.70	6.58	25.28
+150M	dropout_off	25	HLA-B*51:01	14	5.85	4.20	16.00
+150M	dropout_off	25	HLA-B*18:01	12	5.82	3.05	23.89
+150M	dropout_off	25	HLA-B*42:01	8	6.41		
+150M	dropout_off	25	HLA-E*01:01	7	4.32		
+150M	dropout_off	25	HLA-B*35:42	6	6.36		
+150M	dropout_off	25	HLA-B*38:01	6	13.59		
+150M	dropout_off	25	HLA-C*08:02	6	4.55		
+150M	dropout_off	25	HLA-A*02:06	4	6.24		
+150M	dropout_off	25	HLA-A*29:02	4	14.07		
+150M	dropout_off	25	HLA-B*41:02	4	9.62		
+150M	dropout_off	25	HLA-B*44:05	3	20.20		
+150M	dropout_off	25	HLA-C*05:01	3	3.57		
+150M	dropout_off	25	HLA-A*68:02	2	1.57		
+150M	dropout_off	25	HLA-B*44:03	2	12.21		
+150M	dropout_off	25	HLA-C*01:02	2	4.50		
+150M	dropout_off	25	HLA-C*12:03	2	14.38		
+150M	dropout_off	25	HLA-A*02:256	1	16.40		
+150M	dropout_off	25	HLA-A*02:266	1	66.77		
+150M	dropout_off	25	HLA-A*25:01	1	5.23		
+150M	dropout_off	25	HLA-A*32:01	1	9.35		
+150M	dropout_off	25	HLA-B*15:18	1	2.88		
+150M	dropout_off	25	HLA-B*35:03	1	29.32		
+150M	dropout_off	25	HLA-B*51:193	1	8.03		
+150M	dropout_off	25	HLA-B*53:01	1	27.36		
+150M	dropout_off	25	HLA-B*57:06	1	17.69		
+150M	dropout_off	25	HLA-B*81:01	1	28.37		
+150M	dropout_off	25	HLA-C*03:03	1	8.86		
+150M	dropout_off	25	HLA-C*03:04	1	44.31		
+150M	dropout_off	25	HLA-C*06:02	1	18.17		
+150M	dropout_off	25	HLA-C*07:01	1	6.24		
+150M	dropout_off	25	HLA-C*14:02	1	0.47		
+150M	dropout_off	100	HLA-A*01:01	27	17.16	10.61	31.29
+150M	dropout_off	100	HLA-A*02:01	27	15.33	7.86	18.87
+150M	dropout_off	100	HLA-A*03:01	27	16.73	10.54	27.09
+150M	dropout_off	100	HLA-A*11:01	27	12.56	8.55	19.31
+150M	dropout_off	100	HLA-A*24:02	27	20.91	12.17	60.60
+150M	dropout_off	100	HLA-A*68:01	27	22.98	12.68	46.44
+150M	dropout_off	100	HLA-B*07:02	27	18.97	13.91	29.75
+150M	dropout_off	100	HLA-B*08:01	27	14.21	9.55	17.55
+150M	dropout_off	100	HLA-B*15:01	27	17.22	14.91	30.13
+150M	dropout_off	100	HLA-B*27:05	27	20.24	14.56	35.90
+150M	dropout_off	100	HLA-B*35:01	27	12.15	10.53	18.05
+150M	dropout_off	100	HLA-B*37:01	27	19.62	13.93	31.94
+150M	dropout_off	100	HLA-B*40:01	27	13.71	9.51	48.18
+150M	dropout_off	100	HLA-B*57:01	27	13.37	7.79	39.43
+150M	dropout_off	100	HLA-C*12:02	27	21.70	12.31	39.59
+150M	dropout_off	100	HLA-E*01:03	27	29.84	18.34	41.51
+150M	dropout_off	100	HLA-B*35:08	21	13.84	8.47	42.47
+150M	dropout_off	100	HLA-B*44:02	21	23.04	14.60	48.80
+150M	dropout_off	100	HLA-A*30:02	19	14.92	7.53	19.82
+150M	dropout_off	100	HLA-B*27:01	17	26.23	14.72	55.00
+150M	dropout_off	100	HLA-B*51:01	14	14.33	10.42	38.56
+150M	dropout_off	100	HLA-B*18:01	12	16.61	8.69	69.43
+150M	dropout_off	100	HLA-B*42:01	8	14.69		
+150M	dropout_off	100	HLA-E*01:01	7	14.88		
+150M	dropout_off	100	HLA-B*35:42	6	15.85		
+150M	dropout_off	100	HLA-B*38:01	6	30.82		
+150M	dropout_off	100	HLA-C*08:02	6	11.35		
+150M	dropout_off	100	HLA-A*02:06	4	11.88		
+150M	dropout_off	100	HLA-A*29:02	4	32.54		
+150M	dropout_off	100	HLA-B*41:02	4	21.53		
+150M	dropout_off	100	HLA-B*44:05	3	44.72		
+150M	dropout_off	100	HLA-C*05:01	3	9.57		
+150M	dropout_off	100	HLA-A*68:02	2	2.79		
+150M	dropout_off	100	HLA-B*44:03	2	25.10		
+150M	dropout_off	100	HLA-C*01:02	2	9.60		
+150M	dropout_off	100	HLA-C*12:03	2	34.38		
+150M	dropout_off	100	HLA-A*02:256	1	31.80		
+150M	dropout_off	100	HLA-A*02:266	1	143.59		
+150M	dropout_off	100	HLA-A*25:01	1	12.00		
+150M	dropout_off	100	HLA-A*32:01	1	24.86		
+150M	dropout_off	100	HLA-B*15:18	1	8.16		
+150M	dropout_off	100	HLA-B*35:03	1	71.27		
+150M	dropout_off	100	HLA-B*51:193	1	18.05		
+150M	dropout_off	100	HLA-B*53:01	1	66.01		
+150M	dropout_off	100	HLA-B*57:06	1	44.26		
+150M	dropout_off	100	HLA-B*81:01	1	58.58		
+150M	dropout_off	100	HLA-C*03:03	1	16.83		
+150M	dropout_off	100	HLA-C*03:04	1	92.74		
+150M	dropout_off	100	HLA-C*06:02	1	48.01		
+150M	dropout_off	100	HLA-C*07:01	1	14.03		
+150M	dropout_off	100	HLA-C*14:02	1	1.17		
+650M	dropout_on	25	HLA-A*01:01	27	5.50	3.84	6.98
+650M	dropout_on	25	HLA-A*02:01	27	4.27	2.88	10.80
+650M	dropout_on	25	HLA-A*03:01	27	1.65	1.08	2.52
+650M	dropout_on	25	HLA-A*11:01	27	0.42	0.25	1.03
+650M	dropout_on	25	HLA-A*24:02	27	3.36	2.37	5.46
+650M	dropout_on	25	HLA-A*68:01	27	3.90	2.53	6.87
+650M	dropout_on	25	HLA-B*07:02	27	3.59	2.88	5.59
+650M	dropout_on	25	HLA-B*08:01	27	13.06	9.18	23.82
+650M	dropout_on	25	HLA-B*15:01	27	8.63	6.12	13.11
+650M	dropout_on	25	HLA-B*27:05	27	2.73	2.04	3.59
+650M	dropout_on	25	HLA-B*35:01	27	4.10	3.28	7.83
+650M	dropout_on	25	HLA-B*37:01	27	3.74	2.85	7.60
+650M	dropout_on	25	HLA-B*40:01	27	4.81	2.93	8.69
+650M	dropout_on	25	HLA-B*57:01	27	4.96	3.91	8.89
+650M	dropout_on	25	HLA-C*12:02	27	2.94	2.22	4.39
+650M	dropout_on	25	HLA-E*01:03	27	3.18	2.23	4.45
+650M	dropout_on	25	HLA-B*35:08	21	5.75	2.93	14.97
+650M	dropout_on	25	HLA-B*44:02	21	7.00	3.96	9.76
+650M	dropout_on	25	HLA-A*30:02	19	5.29	3.65	12.81
+650M	dropout_on	25	HLA-B*27:01	17	5.34	3.00	11.17
+650M	dropout_on	25	HLA-B*51:01	14	2.44	1.78	4.26
+650M	dropout_on	25	HLA-B*18:01	12	10.77	2.84	45.52
+650M	dropout_on	25	HLA-B*42:01	8	5.79		
+650M	dropout_on	25	HLA-E*01:01	7	2.89		
+650M	dropout_on	25	HLA-B*35:42	6	3.39		
+650M	dropout_on	25	HLA-B*38:01	6	5.68		
+650M	dropout_on	25	HLA-C*08:02	6	0.21		
+650M	dropout_on	25	HLA-A*02:06	4	10.88		
+650M	dropout_on	25	HLA-A*29:02	4	2.22		
+650M	dropout_on	25	HLA-B*41:02	4	6.72		
+650M	dropout_on	25	HLA-B*44:05	3	5.73		
+650M	dropout_on	25	HLA-C*05:01	3	1.76		
+650M	dropout_on	25	HLA-A*68:02	2	3.00		
+650M	dropout_on	25	HLA-B*44:03	2	5.36		
+650M	dropout_on	25	HLA-C*01:02	2	32.52		
+650M	dropout_on	25	HLA-C*12:03	2	1.92		
+650M	dropout_on	25	HLA-A*02:256	1	3.82		
+650M	dropout_on	25	HLA-A*02:266	1	3.83		
+650M	dropout_on	25	HLA-A*25:01	1	2.64		
+650M	dropout_on	25	HLA-A*32:01	1	4.40		
+650M	dropout_on	25	HLA-B*15:18	1	7.23		
+650M	dropout_on	25	HLA-B*35:03	1	63.09		
+650M	dropout_on	25	HLA-B*51:193	1	0.66		
+650M	dropout_on	25	HLA-B*53:01	1	11.91		
+650M	dropout_on	25	HLA-B*57:06	1	2.42		
+650M	dropout_on	25	HLA-B*81:01	1	3.32		
+650M	dropout_on	25	HLA-C*03:03	1	1.31		
+650M	dropout_on	25	HLA-C*03:04	1	6.45		
+650M	dropout_on	25	HLA-C*06:02	1	1.03		
+650M	dropout_on	25	HLA-C*07:01	1	18.42		
+650M	dropout_on	25	HLA-C*14:02	1	0.52		
+650M	dropout_on	100	HLA-A*01:01	27	5.62	3.97	7.50
+650M	dropout_on	100	HLA-A*02:01	27	4.53	3.05	11.46
+650M	dropout_on	100	HLA-A*03:01	27	3.07	2.03	4.58
+650M	dropout_on	100	HLA-A*11:01	27	0.67	0.42	1.42
+650M	dropout_on	100	HLA-A*24:02	27	3.97	2.88	6.09
+650M	dropout_on	100	HLA-A*68:01	27	3.72	2.43	6.52
+650M	dropout_on	100	HLA-B*07:02	27	0.56	0.32	1.05
+650M	dropout_on	100	HLA-B*08:01	27	6.63	4.22	12.59
+650M	dropout_on	100	HLA-B*15:01	27	6.88	4.88	10.46
+650M	dropout_on	100	HLA-B*27:05	27	1.60	1.27	2.15
+650M	dropout_on	100	HLA-B*35:01	27	2.49	1.88	4.76
+650M	dropout_on	100	HLA-B*37:01	27	2.53	1.89	4.85
+650M	dropout_on	100	HLA-B*40:01	27	1.65	0.91	3.29
+650M	dropout_on	100	HLA-B*57:01	27	6.52	4.97	11.81
+650M	dropout_on	100	HLA-C*12:02	27	2.43	1.87	3.47
+650M	dropout_on	100	HLA-E*01:03	27	2.26	1.52	3.13
+650M	dropout_on	100	HLA-B*35:08	21	4.39	2.27	11.65
+650M	dropout_on	100	HLA-B*44:02	21	3.14	1.77	4.54
+650M	dropout_on	100	HLA-A*30:02	19	3.88	2.64	9.45
+650M	dropout_on	100	HLA-B*27:01	17	2.78	1.55	5.62
+650M	dropout_on	100	HLA-B*51:01	14	0.42	0.29	0.74
+650M	dropout_on	100	HLA-B*18:01	12	5.42	1.16	23.85
+650M	dropout_on	100	HLA-B*42:01	8	4.10		
+650M	dropout_on	100	HLA-E*01:01	7	1.94		
+650M	dropout_on	100	HLA-B*35:42	6	2.08		
+650M	dropout_on	100	HLA-B*38:01	6	3.65		
+650M	dropout_on	100	HLA-C*08:02	6	0.75		
+650M	dropout_on	100	HLA-A*02:06	4	11.50		
+650M	dropout_on	100	HLA-A*29:02	4	3.29		
+650M	dropout_on	100	HLA-B*41:02	4	3.65		
+650M	dropout_on	100	HLA-B*44:05	3	3.25		
+650M	dropout_on	100	HLA-C*05:01	3	0.42		
+650M	dropout_on	100	HLA-A*68:02	2	3.22		
+650M	dropout_on	100	HLA-B*44:03	2	2.95		
+650M	dropout_on	100	HLA-C*01:02	2	22.22		
+650M	dropout_on	100	HLA-C*12:03	2	1.26		
+650M	dropout_on	100	HLA-A*02:256	1	3.54		
+650M	dropout_on	100	HLA-A*02:266	1	3.98		
+650M	dropout_on	100	HLA-A*25:01	1	2.17		
+650M	dropout_on	100	HLA-A*32:01	1	6.30		
+650M	dropout_on	100	HLA-B*15:18	1	4.68		
+650M	dropout_on	100	HLA-B*35:03	1	40.76		
+650M	dropout_on	100	HLA-B*51:193	1	0.01		
+650M	dropout_on	100	HLA-B*53:01	1	6.88		
+650M	dropout_on	100	HLA-B*57:06	1	3.28		
+650M	dropout_on	100	HLA-B*81:01	1	1.58		
+650M	dropout_on	100	HLA-C*03:03	1	1.52		
+650M	dropout_on	100	HLA-C*03:04	1	21.17		
+650M	dropout_on	100	HLA-C*06:02	1	0.17		
+650M	dropout_on	100	HLA-C*07:01	1	23.40		
+650M	dropout_on	100	HLA-C*14:02	1	0.24		
+650M	dropout_off	25	HLA-A*01:01	27	2.83	2.01	5.24
+650M	dropout_off	25	HLA-A*02:01	27	4.73	2.66	7.78
+650M	dropout_off	25	HLA-A*03:01	27	1.69	0.96	2.84
+650M	dropout_off	25	HLA-A*11:01	27	1.15	0.80	2.36
+650M	dropout_off	25	HLA-A*24:02	27	4.66	2.80	8.28
+650M	dropout_off	25	HLA-A*68:01	27	2.75	1.68	3.94
+650M	dropout_off	25	HLA-B*07:02	27	2.77	1.85	4.12
+650M	dropout_off	25	HLA-B*08:01	27	6.97	4.76	11.72
+650M	dropout_off	25	HLA-B*15:01	27	8.22	4.66	14.67
+650M	dropout_off	25	HLA-B*27:05	27	0.85	0.44	1.62
+650M	dropout_off	25	HLA-B*35:01	27	1.53	0.97	2.16
+650M	dropout_off	25	HLA-B*37:01	27	3.58	2.23	4.91
+650M	dropout_off	25	HLA-B*40:01	27	2.36	1.13	3.41
+650M	dropout_off	25	HLA-B*57:01	27	1.13	0.53	1.43
+650M	dropout_off	25	HLA-C*12:02	27	2.90	1.84	4.29
+650M	dropout_off	25	HLA-E*01:03	27	2.33	1.27	3.56
+650M	dropout_off	25	HLA-B*35:08	21	3.02	1.91	4.17
+650M	dropout_off	25	HLA-B*44:02	21	2.77	2.01	3.86
+650M	dropout_off	25	HLA-A*30:02	19	4.82	2.96	6.93
+650M	dropout_off	25	HLA-B*27:01	17	1.70	0.80	2.85
+650M	dropout_off	25	HLA-B*51:01	14	0.46	0.13	1.32
+650M	dropout_off	25	HLA-B*18:01	12	5.86	3.54	8.62
+650M	dropout_off	25	HLA-B*42:01	8	2.51		
+650M	dropout_off	25	HLA-E*01:01	7	6.09		
+650M	dropout_off	25	HLA-B*35:42	6	1.62		
+650M	dropout_off	25	HLA-B*38:01	6	1.98		
+650M	dropout_off	25	HLA-C*08:02	6	0.80		
+650M	dropout_off	25	HLA-A*02:06	4	2.26		
+650M	dropout_off	25	HLA-A*29:02	4	2.05		
+650M	dropout_off	25	HLA-B*41:02	4	6.62		
+650M	dropout_off	25	HLA-B*44:05	3	1.72		
+650M	dropout_off	25	HLA-C*05:01	3	0.56		
+650M	dropout_off	25	HLA-A*68:02	2	7.50		
+650M	dropout_off	25	HLA-B*44:03	2	1.65		
+650M	dropout_off	25	HLA-C*01:02	2	0.15		
+650M	dropout_off	25	HLA-C*12:03	2	0.96		
+650M	dropout_off	25	HLA-A*02:256	1	2.84		
+650M	dropout_off	25	HLA-A*02:266	1	18.13		
+650M	dropout_off	25	HLA-A*25:01	1	1.66		
+650M	dropout_off	25	HLA-A*32:01	1	5.67		
+650M	dropout_off	25	HLA-B*15:18	1	1.47		
+650M	dropout_off	25	HLA-B*35:03	1	9.65		
+650M	dropout_off	25	HLA-B*51:193	1	0.02		
+650M	dropout_off	25	HLA-B*53:01	1	1.40		
+650M	dropout_off	25	HLA-B*57:06	1	1.35		
+650M	dropout_off	25	HLA-B*81:01	1	4.72		
+650M	dropout_off	25	HLA-C*03:03	1	0.55		
+650M	dropout_off	25	HLA-C*03:04	1	53.73		
+650M	dropout_off	25	HLA-C*06:02	1	1.01		
+650M	dropout_off	25	HLA-C*07:01	1	5.72		
+650M	dropout_off	25	HLA-C*14:02	1	0.05		
+650M	dropout_off	100	HLA-A*01:01	27	1.24	0.70	2.38
+650M	dropout_off	100	HLA-A*02:01	27	0.43	0.19	1.10
+650M	dropout_off	100	HLA-A*03:01	27	0.17	0.07	0.31
+650M	dropout_off	100	HLA-A*11:01	27	5.21	3.97	10.33
+650M	dropout_off	100	HLA-A*24:02	27	2.05	1.19	3.98
+650M	dropout_off	100	HLA-A*68:01	27	0.82	0.42	1.24
+650M	dropout_off	100	HLA-B*07:02	27	7.26	4.70	8.68
+650M	dropout_off	100	HLA-B*08:01	27	4.54	3.01	8.07
+650M	dropout_off	100	HLA-B*15:01	27	2.18	1.15	3.98
+650M	dropout_off	100	HLA-B*27:05	27	6.42	4.03	10.83
+650M	dropout_off	100	HLA-B*35:01	27	1.34	1.03	1.82
+650M	dropout_off	100	HLA-B*37:01	27	2.58	1.57	3.85
+650M	dropout_off	100	HLA-B*40:01	27	5.11	2.47	7.46
+650M	dropout_off	100	HLA-B*57:01	27	0.59	0.23	0.83
+650M	dropout_off	100	HLA-C*12:02	27	1.34	0.81	2.00
+650M	dropout_off	100	HLA-E*01:03	27	0.75	0.47	1.06
+650M	dropout_off	100	HLA-B*35:08	21	1.67	1.07	2.25
+650M	dropout_off	100	HLA-B*44:02	21	2.50	1.77	3.48
+650M	dropout_off	100	HLA-A*30:02	19	0.75	0.42	1.20
+650M	dropout_off	100	HLA-B*27:01	17	6.15	3.00	9.97
+650M	dropout_off	100	HLA-B*51:01	14	2.55	1.31	6.82
+650M	dropout_off	100	HLA-B*18:01	12	1.97	1.05	3.07
+650M	dropout_off	100	HLA-B*42:01	8	0.78		
+650M	dropout_off	100	HLA-E*01:01	7	2.57		
+650M	dropout_off	100	HLA-B*35:42	6	2.05		
+650M	dropout_off	100	HLA-B*38:01	6	4.70		
+650M	dropout_off	100	HLA-C*08:02	6	12.54		
+650M	dropout_off	100	HLA-A*02:06	4	0.75		
+650M	dropout_off	100	HLA-A*29:02	4	0.79		
+650M	dropout_off	100	HLA-B*41:02	4	5.04		
+650M	dropout_off	100	HLA-B*44:05	3	0.69		
+650M	dropout_off	100	HLA-C*05:01	3	2.93		
+650M	dropout_off	100	HLA-A*68:02	2	2.57		
+650M	dropout_off	100	HLA-B*44:03	2	3.54		
+650M	dropout_off	100	HLA-C*01:02	2	9.53		
+650M	dropout_off	100	HLA-C*12:03	2	0.95		
+650M	dropout_off	100	HLA-A*02:256	1	0.85		
+650M	dropout_off	100	HLA-A*02:266	1	1.32		
+650M	dropout_off	100	HLA-A*25:01	1	2.52		
+650M	dropout_off	100	HLA-A*32:01	1	0.25		
+650M	dropout_off	100	HLA-B*15:18	1	1.87		
+650M	dropout_off	100	HLA-B*35:03	1	10.82		
+650M	dropout_off	100	HLA-B*51:193	1	0.70		
+650M	dropout_off	100	HLA-B*53:01	1	1.06		
+650M	dropout_off	100	HLA-B*57:06	1	0.23		
+650M	dropout_off	100	HLA-B*81:01	1	5.30		
+650M	dropout_off	100	HLA-C*03:03	1	0.44		
+650M	dropout_off	100	HLA-C*03:04	1	95.89		
+650M	dropout_off	100	HLA-C*06:02	1	0.94		
+650M	dropout_off	100	HLA-C*07:01	1	3.95		
+650M	dropout_off	100	HLA-C*14:02	1	0.33		

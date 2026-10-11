@@ -836,3 +836,24 @@ that could not be compared against anything.
 Phase 2 training is therefore reported at 35M dev-loop scale only, which is what
 the plan itself prescribes for the free-tier stage. The 650M gap is a limitation
 of this execution, not a finding about the method.
+
+## 650M allele-balanced run completes; headline holds at both sizes
+
+The 51-allele balanced sample (n = 610, Kish effective sample size 26.86) now covers 650M as
+well as 150M. MHC_HEAVY G1 with token dropout on: GSI 4.41 [3.70, 5.30] at gap 25 and
+3.27 [2.65, 4.19] at gap 100, cluster bootstrap over alleles. Both lower bounds are far above
+1.0, so H1 is supported on an allele-general sample at both admissible sizes, not just the
+HLA-A*02:01-dominated one.
+
+Two things change in the report. Limitation 6 no longer says the balanced run covers 150M
+only. Section 4.6 gains the balanced comparison, which reproduces the falling-with-scale
+direction on 51 alleles rather than 9.
+
+One new caveat: GSI is not monotone in gap at 650M. Gap 100 scores below gap 25, where 150M
+keeps rising. One sample at two sizes cannot separate a real non-monotonicity from noise, so
+the claim stays at "both sizes exceed 1.0 by a wide margin at gap 25 and above".
+
+Per-allele GSI is now committed (`results/phase1/allele_balanced/per_allele_gsi.tsv`). At
+n = 27 per allele, 22 of 51 alleles clear 1.0 on their own lower bound at 150M and 21 of 51
+at 650M, with medians 7.07 and 3.90 at gap 25. The panel-level effect is not resolvable
+allele by allele, and the figure shows the spread rather than hiding it.

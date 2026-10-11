@@ -749,6 +749,129 @@ def fig5_inertness(runs: list[Run], out: Path) -> None:
     _save(fig, out, "fig5_inertness")
 
 
+MODEL_COLORS = {"150M": "#2a78d6", "650M": "#eb6834"}
+
+
+def _read_balanced(path: Path) -> list[dict]:
+    if not path.exists():
+        return []
+    with path.open() as fh:
+        return [r for r in csv.DictReader(fh, delimiter="\t") if r["token_dropout"] == "dropout_on"]
+
+
+def fig6_allele_balanced(results: Path, out: Path) -> None:
+    """GSI on the 51-allele balanced sample, with the per-allele spread behind it.
+
+    The balanced sample is the strongest evidence for the headline, so it gets its own
+    figure: the left panel is the aggregate, the right shows that the aggregate is not
+    one allele carrying the rest.
+    """
+    root = results / "allele_balanced"
+    rows = _read_balanced(root / "allele_balanced.tsv")
+    per = _read_balanced(root / "per_allele_gsi.tsv")
+    if not rows:
+        return
+    models = [m for m in MODEL_COLORS if any(r["model"] == m for r in rows)]
+
+    fig, (ax, ax2) = plt.subplots(
+        1, 2, figsize=(10.2, 4.3), gridspec_kw={"width_ratios": (1.4, 1), "wspace": 0.22}
+    )
+    ends = []
+    for model in models:
+        series = sorted(
+            (int(r["gap"]), float(r["gsi"]), float(r["cluster_lo"]), float(r["cluster_hi"]))
+            for r in rows
+            if r["model"] == model
+        )
+        gaps = [s[0] for s in series]
+        color = MODEL_COLORS[model]
+        ax.fill_between(
+            gaps,
+            [s[2] for s in series],
+            [s[3] for s in series],
+            color=color,
+            alpha=BAND_ALPHA,
+            lw=0,
+        )
+        ax.plot(
+            gaps,
+            [s[1] for s in series],
+            color=color,
+            marker="o",
+            markersize=MARKER_SIZE,
+            markeredgecolor=SURFACE,
+            markeredgewidth=1.2,
+            zorder=3,
+        )
+        ends.append((gaps[-1], series[-1][1], f"ESM-2 {model}"))
+
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    ax.axhline(1.0, color=AXIS, lw=1, ls=DASH, zorder=1)
+    _ref_label(ax, "GSI 1.0: a relayout moves the score as much as 20 real substitutions")
+    _gap_axis(ax, sorted({int(r["gap"]) for r in rows}), right=175)
+    ax.set_ylabel("GSI", fontsize=9)
+    ax.set_xlabel(GAP_LABEL)
+
+    # Per-allele points at the gap where both sizes are clearly above 1.0.
+    gap = 25
+    for i, model in enumerate(models):
+        vals = sorted(
+            float(r["gsi"])
+            for r in per
+            if r["model"] == model and int(r["gap"]) == gap and r["gsi"]
+        )
+        if not vals:
+            continue
+        rng = __import__("random").Random(0)
+        xs = [i + rng.uniform(-0.17, 0.17) for _ in vals]
+        ax2.plot(
+            xs,
+            vals,
+            ls="none",
+            marker="o",
+            markersize=4,
+            color=MODEL_COLORS[model],
+            alpha=0.55,
+            markeredgecolor="none",
+        )
+        med = vals[len(vals) // 2]
+        ax2.plot([i - 0.28, i + 0.28], [med, med], color=MODEL_COLORS[model], lw=2.2, zorder=4)
+        ax2.annotate(
+            f"median {med:.1f}",
+            (i, med),
+            xytext=(0, 7),
+            textcoords="offset points",
+            fontsize=8.5,
+            color=TEXT_2,
+            ha="center",
+            bbox={"facecolor": SURFACE, "edgecolor": "none", "pad": 1.2},
+        )
+    ax2.set_yscale("log")
+    ax2.axhline(1.0, color=AXIS, lw=1, ls=DASH, zorder=1)
+    ax2.set_xticks(range(len(models)), [f"ESM-2 {m}" for m in models])
+    ax2.set_xlim(-0.52, len(models) - 0.5)
+    ax2.grid(False, axis="x")
+    ax2.set_ylabel(f"Per-allele GSI at gap {gap}", fontsize=9)
+    _ref_label(ax2, "GSI 1.0")
+
+    fig.set_layout_engine("constrained")
+    _headline(
+        fig,
+        "The layout artifact is present across 51 HLA alleles, not carried by HLA-A*02:01",
+        f"MHC_HEAVY, operator G1, token dropout on. {len(models)} model sizes on an "
+        "allele-balanced sample: 51 alleles, at most 27 examples each, n = 610, Kish "
+        "effective sample size 26.86.",
+        "GSI is the median absolute score shift from a relayout divided by the median shift\n"
+        "from 20 real substitutions. Left: bands are 95% percentile bootstrap intervals\n"
+        "resampling alleles.\n"
+        "Right: one point per allele at n = 27, so individual alleles are poorly resolved; the "
+        "spread is shown to make that visible rather than to support per-allele claims.",
+    )
+    _end_labels(ax, ends)
+    _save(fig, out, "fig6_allele_balanced")
+
+
 # ---------------------------------------------------------------- table
 
 
@@ -794,6 +917,7 @@ def main(argv: list[str] | None = None) -> int:
     fig3_absolute_scale(runs, out)
     fig4_discrimination(runs, out)
     fig5_inertness(runs, out)
+    fig6_allele_balanced(args.results, out)
     write_table1(runs, out)
     print(f"wrote figures and table1.md for {[r.name for r in runs]} to {out}")
     return 0

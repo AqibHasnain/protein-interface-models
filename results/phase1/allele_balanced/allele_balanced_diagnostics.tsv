@@ -1,0 +1,3 @@
+model	n_examples	n_clusters	largest_cluster	largest_cluster_fraction	kish_n_eff	per_allele_cap
+150M	610	51	HLA-A*01:01	0.044	26.86	27
+650M	610	51	HLA-A*01:01	0.044	26.86	27

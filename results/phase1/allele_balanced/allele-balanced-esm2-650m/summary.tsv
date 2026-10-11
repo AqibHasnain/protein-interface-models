@@ -1,0 +1,15 @@
+target	operator	gap	regime	token_dropout	median_abs_shift_nats	c1_denominator_nats	gsi	gsi_ci_lo	gsi_ci_hi	n_pairs
+MHC_HEAVY	G1	0	in_distribution	true	0	0.0321507	0	0	0	610
+MHC_HEAVY	G1	0	in_distribution	false	0	0.029014	0	0	0	610
+MHC_HEAVY	G1	1	in_distribution	true	0.0306249	0.0321507	0.95254	0.837183	1.09845	610
+MHC_HEAVY	G1	1	in_distribution	false	0.0377298	0.029014	1.3004	1.1436	1.4877	610
+MHC_HEAVY	G1	5	in_distribution	true	0.0369335	0.0321507	1.14876	1.02624	1.31567	610
+MHC_HEAVY	G1	5	in_distribution	false	0.0362709	0.029014	1.25012	1.08943	1.45121	610
+MHC_HEAVY	G1	25	in_distribution	true	0.141804	0.0321507	4.41061	4.01344	4.83965	610
+MHC_HEAVY	G1	25	in_distribution	false	0.0752429	0.029014	2.59333	2.30288	2.94253	610
+MHC_HEAVY	G1	100	in_distribution	true	0.10502	0.0321507	3.26649	2.94709	3.64137	610
+MHC_HEAVY	G1	100	in_distribution	false	0.0538501	0.029014	1.856	1.55953	2.1318	610
+MHC_HEAVY	C1(n=20)		control	true	0.0321507	0.0321507				610
+MHC_HEAVY	C1(n=20)		control	false	0.029014	0.029014				610
+MHC_HEAVY	C2		control	true	0.0124264	0.0321507				610
+MHC_HEAVY	C2		control	false	0.0103855	0.029014				610

@@ -143,18 +143,27 @@ No claim is made at gaps 1 and 2. G2 stays below 1.0 for MHC_HEAVY at both sizes
 ### 4.4 Generalization across alleles
 
 The main sample has Kish effective sample size 1.92, so the effect could have been a property of
-HLA-A*02:01. An allele-balanced 150M resample (51 alleles, at most 27 each, n = 610, effective sample
-size 26.86, baseline margin 0.687) agrees:
+HLA-A*02:01. An allele-balanced resample (51 alleles, at most 27 each, n = 610, effective sample size
+26.86) agrees at both sizes. Intervals are cluster bootstraps over alleles, token dropout on:
 
-| Gap | Balanced GSI [95% CI] | Concentrated GSI [95% CI] |
-|---|---|---|
-| 1 | 0.50 [0.43, 0.59] | 0.71 [0.68, 0.92] |
-| 5 | 1.79 [1.58, 2.04] | 2.28 [1.81, 2.96] |
-| 25 | 6.96 [6.18, 7.85] | 8.59 [6.77, 9.40] |
-| 100 | 11.71 [10.39, 13.19] | 10.52 [9.78, 16.11] |
+| Gap | 150M balanced | 650M balanced | 150M concentrated | 650M concentrated |
+|---|---|---|---|---|
+| 1 | 0.50 [0.40, 0.64] | 0.95 [0.69, 1.37] | 0.71 [0.68, 0.92] | 0.84 [0.52, 2.29] |
+| 5 | 1.79 [1.49, 2.11] | 1.15 [0.87, 1.59] | 2.28 [1.81, 2.96] | 1.85 [1.15, 2.11] |
+| 25 | 6.96 [6.20, 7.93] | 4.41 [3.70, 5.30] | 8.59 [6.77, 9.40] | 4.83 [1.96, 5.66] |
+| 100 | 11.71 [10.45, 13.17] | 3.27 [2.65, 4.19] | 10.52 [9.78, 16.11] | 5.08 [2.39, 5.97] |
 
-The 650M balanced run had not completed at time of writing. The committed files hold no per-allele
-GSI values.
+Dropping HLA-A*02:01 entirely moves no balanced point estimate by more than 4%, so the effect is not
+carried by the dominant allele.
+
+GSI is not monotone in gap at 650M: gap 100 scores below gap 25, where 150M keeps rising. A single
+sample at two sizes does not separate a real non-monotonicity from noise, so the claim here is only
+that both sizes exceed 1.0 by a wide margin at gap 25 and above.
+
+Per-allele GSI (n = 27 each, `results/phase1/allele_balanced/per_allele_gsi.tsv`) has median 7.07 at
+150M and 3.90 at 650M for gap 25, with ranges spanning 0.46 to 38.2 and 0.21 to 63.1. At that sample
+size 22 of 51 alleles clear 1.0 on their own lower bound at 150M, 21 of 51 at 650M. The effect is
+present across the allele panel and is not individually resolvable allele by allele.
 
 ### 4.5 Cross-chain content is used
 
@@ -179,8 +188,12 @@ interval [0.033, 0.217]. The artifact therefore acts on real cross-chain computa
 
 Across the two admissible sizes sensitivity falls: at gap 100 from 10.52 [9.78, 16.11] to 5.08
 [2.39, 5.97] (non-overlapping), and from 0.469 to 0.181 nats. At gap 25 the intervals [6.77, 9.40]
-and [1.96, 5.66] also do not overlap. About 5x remains at 650M (`fig2_scale.png`). Two points give a
-direction and no scaling law.
+and [1.96, 5.66] also do not overlap. About 5x remains at 650M (`fig2_scale.png`).
+
+The allele-balanced samples give the same direction on 51 alleles rather than 9: gap 25 falls from
+6.96 [6.20, 7.93] to 4.41 [3.70, 5.30], gap 100 from 11.71 [10.45, 13.17] to 3.27 [2.65, 4.19]. Both
+pairs are non-overlapping. Two points give a direction and no scaling law, and the effect at 650M is
+still several times the substitution scale.
 
 ### 4.7 Token dropout
 
@@ -245,16 +258,15 @@ the decision log and are not regenerated from `results/`.
    learning-rate check, no 650M arms, and the plan's reported H2 metric (held-out binding AUROC)
    does not exist because the backbone cannot discriminate binding. The arms show the harness works
    and the module trains without diverging. They do not test H2.
-5. **650M is thin.** n = 250, 9 alleles, effective sample size 1.96, five gaps, and no completed
-   balanced run. The scale direction rests on the smallest sample, and its gap-100 value depends on
-   token dropout.
-6. **Allele concentration.** Effective sample size 1.92 in the main runs. The balanced run covers 150M
-   only and reports no per-allele values.
+5. **650M main sample is thin.** n = 250, 9 alleles, effective sample size 1.96, five gaps. The
+   balanced run at 51 alleles supersedes it and reverses its gap-100 reading.
+6. **Allele concentration.** Effective sample size 1.92 in the main runs. The balanced runs at 51
+   alleles cover both sizes; no single allele is individually well resolved at n = 27.
 7. **The cluster intervals are themselves optimistic.** A percentile bootstrap over 9 to 14 clusters,
    one of which is 69% of the sample, has poor coverage. The data supports the statement that G1 at
    gaps 25 and 100 sits well above 1.0 at 150M and 650M with token dropout on. It does not support
    the specific bounds, and the example-level intervals it replaced were worse still. The
-   allele-balanced run at 51 alleles is the stronger evidence and exists only at 150M.
+   allele-balanced runs at 51 alleles are the stronger evidence and now exist at both sizes.
 8. **TCR chains are CDR3 loops only.** VDJdb has no full variable domains, so TCR length variation is
    far smaller than in a real receptor, and operator P3 is not applicable.
 9. **Scope.** MHC trimmed to alpha-1/alpha-2, class I only, one backbone family. Class II,

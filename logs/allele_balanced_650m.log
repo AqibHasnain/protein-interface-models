@@ -1,2 +1,32 @@
 Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
 Loading weights:   0%|          | 0/539 [00:00<?, ?it/s]Loading weights: 100%|██████████| 539/539 [00:00<00:00, 32950.44it/s]
+22:44:10 INFO cla.eval.audit: start MHC_HEAVY td=True C1:20 n=610
+22:48:00 INFO cla.eval.audit: done MHC_HEAVY td=True C1:20 in 230s
+22:48:00 INFO cla.eval.audit: start MHC_HEAVY td=True C2 n=610
+22:51:51 INFO cla.eval.audit: done MHC_HEAVY td=True C2 in 231s
+22:51:51 INFO cla.eval.audit: start MHC_HEAVY td=True G@0 n=610
+22:55:42 INFO cla.eval.audit: done MHC_HEAVY td=True G@0 in 231s
+22:55:42 INFO cla.eval.audit: start MHC_HEAVY td=True G1@1 n=610
+22:59:29 INFO cla.eval.audit: done MHC_HEAVY td=True G1@1 in 227s
+22:59:29 INFO cla.eval.audit: start MHC_HEAVY td=True G1@5 n=610
+23:03:16 INFO cla.eval.audit: done MHC_HEAVY td=True G1@5 in 227s
+23:03:16 INFO cla.eval.audit: start MHC_HEAVY td=True G1@25 n=610
+23:07:03 INFO cla.eval.audit: done MHC_HEAVY td=True G1@25 in 227s
+23:07:03 INFO cla.eval.audit: start MHC_HEAVY td=True G1@100 n=610
+23:10:51 INFO cla.eval.audit: done MHC_HEAVY td=True G1@100 in 228s
+23:18:31 INFO cla.eval.audit: start MHC_HEAVY td=False C1:20 n=610
+23:22:21 INFO cla.eval.audit: done MHC_HEAVY td=False C1:20 in 230s
+23:22:21 INFO cla.eval.audit: start MHC_HEAVY td=False C2 n=610
+23:26:12 INFO cla.eval.audit: done MHC_HEAVY td=False C2 in 231s
+23:26:12 INFO cla.eval.audit: start MHC_HEAVY td=False G@0 n=610
+23:30:02 INFO cla.eval.audit: done MHC_HEAVY td=False G@0 in 230s
+23:30:02 INFO cla.eval.audit: start MHC_HEAVY td=False G1@1 n=610
+23:33:50 INFO cla.eval.audit: done MHC_HEAVY td=False G1@1 in 227s
+23:33:50 INFO cla.eval.audit: start MHC_HEAVY td=False G1@5 n=610
+23:37:38 INFO cla.eval.audit: done MHC_HEAVY td=False G1@5 in 229s
+23:37:38 INFO cla.eval.audit: start MHC_HEAVY td=False G1@25 n=610
+23:41:20 INFO cla.eval.audit: done MHC_HEAVY td=False G1@25 in 222s
+23:41:20 INFO cla.eval.audit: start MHC_HEAVY td=False G1@100 n=610
+23:45:07 INFO cla.eval.audit: done MHC_HEAVY td=False G1@100 in 227s
+done 650M
+wrote results/phase1/allele_balanced/allele_balanced.json

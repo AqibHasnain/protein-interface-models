@@ -1,0 +1,76 @@
+{
+  "arm": "A0",
+  "seed": 0,
+  "notice": "Negatives are mismatched decoys, not validated non-binders: AUROC is a weak proxy for real binding, not a bound on it.",
+  "hparams": {
+    "lora_r": 16,
+    "lora_alpha": 32,
+    "lr": 0.001,
+    "weight_decay": 0.0,
+    "warmup_frac": 0.05,
+    "grad_clip": 1.0,
+    "batch_size": 16,
+    "steps": 300,
+    "train_subsample": 4800,
+    "seed": 0,
+    "model": "35M",
+    "threads": 5
+  },
+  "module": {
+    "reset": false,
+    "chain_embedding": false,
+    "offset": null
+  },
+  "trainable_params": {
+    "total": 1663201,
+    "lora": 1658880,
+    "role_embedding": 0,
+    "padding": 2880,
+    "head": 1441
+  },
+  "steps": 300,
+  "train_wall_clock_s": 2567.0278010368347,
+  "eval_wall_clock_s": 690.6499390602112,
+  "train_loss": {
+    "first20": 0.7068814545869827,
+    "last20": 0.22488540932536125
+  },
+  "eval": {
+    "test_allele": {
+      "n": 2000,
+      "n_alleles": 7,
+      "auroc": {
+        "point": 0.5998149999999999,
+        "ci": [
+          0.440977565398558,
+          0.6628646641500112
+        ]
+      },
+      "auprc": {
+        "point": 0.5659778316356228,
+        "ci": [
+          0.25820529945502185,
+          0.7251930776931239
+        ]
+      }
+    },
+    "test_epitope": {
+      "n": 1200,
+      "n_alleles": 5,
+      "auroc": {
+        "point": 0.5510569444444444,
+        "ci": [
+          0.46081504702194354,
+          0.5597910546397021
+        ]
+      },
+      "auprc": {
+        "point": 0.5323416551392115,
+        "ci": [
+          0.29279945457535866,
+          0.5349728446091165
+        ]
+      }
+    }
+  }
+}
