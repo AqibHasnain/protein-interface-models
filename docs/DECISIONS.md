@@ -857,3 +857,33 @@ Per-allele GSI is now committed (`results/phase1/allele_balanced/per_allele_gsi.
 n = 27 per allele, 22 of 51 alleles clear 1.0 on their own lower bound at 150M and 21 of 51
 at 650M, with medians 7.07 and 3.90 at gap 25. The panel-level effect is not resolvable
 allele by allele, and the figure shows the spread rather than hiding it.
+
+## H2 tested on a binding classifier: not supported
+
+The masked-LM arms could not answer H2, because the plan's metric is held-out binding AUROC and
+nothing in those arms predicts binding. A binary classifier head on the same LoRA arms supplies
+it: ESM-2 35M, mean-pooled residue representations, 2,400 positives plus one decoy each, 300
+steps, three seeds per arm, 1,663,201 trainable parameters in every arm.
+
+Neither A4 (full module) nor A5 (A4 plus chain-order augmentation) beats A0. The seed-mean AUROC
+deltas against A0 are -0.061 [-0.103, 0.049] on held-out alleles and +0.104 [-0.143, 0.113] on
+held-out epitopes for A4, and +0.044 [-0.080, 0.089] and +0.081 [-0.054, 0.095] for A5. Every
+delta interval covers zero, every arm's AUROC interval covers 0.5, and the seed standard
+deviation of 0.03 to 0.12 is as large as the deltas.
+
+The result is negative and underpowered at once, and the report says both. A test whose arms all
+sit at chance cannot distinguish "the module does not help" from "nothing here predicts binding".
+What it does rule out is the specific claim H2 makes, that the module improves held-out binding
+AUROC at this scale.
+
+Learning rate was selected on A0 alone over 1e-4, 5e-4, 1e-3 by held-out-allele AUROC. There was
+no validation eval, so this is test-set selection. It was applied only to the baseline, which
+biases toward A0 and against the hypothesis, so it does not rescue a negative result. Recorded
+rather than hidden.
+
+One observation kept as an observation. A0 and A4 fit the training set, final loss 0.16 to 0.32
+from 0.69, while held-out AUROC sits at chance. A5, which differs from A4 only by chain-order
+augmentation, never fits at all: final loss 0.682, 0.691, 0.485. It also has the highest held-out
+mean and the smallest seed spread. That the augmentation removes a layout shortcut the other arms
+learn is consistent with these numbers and is not established by them, since the delta still spans
+zero. It is not claimed as a finding.

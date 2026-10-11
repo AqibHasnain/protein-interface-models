@@ -10,13 +10,16 @@ sanity check. Peptide and CDR3-beta fail it at every size and support no claim. 
 untrained for binding. Gate G1 reads PROCEED on the admissible MHC conditions alone. Four earlier
 claims were withdrawn (section 6).
 
-Phase 2 then found that the artifact does not occur at the scale real receptors produce. Matched
-complexes differing only in CDR3-beta length show no length-attributable effect on the MHC score
-(excess over a shuffled-length null 0.0003 nats per residue, interval [-0.0013, 0.0018]). Natural
-CDR3-beta length varies by 3 to 4 residues, which falls in the small-gap regime where Phase 1 already
-measured GSI at or below 1.8. The sensitivity is real and large at offsets of 25 or more, and
-receptors do not generate offsets that large. On this evidence a reader deciding whether to adopt a
-chain-aware positional module should decline. Section 8 gives the Phase 2 results in full.
+Phase 2 then found two things. The chain-aware module does not improve held-out binding AUROC over a
+parameter-matched baseline: deltas of -0.06 on held-out alleles and +0.10 on held-out epitopes, both
+intervals covering zero across three seeds. And the artifact does not occur at the scale real
+receptors produce: matched complexes differing only in CDR3-beta length show no length-attributable
+effect on the MHC score (excess over a shuffled-length null 0.0003 nats per residue, interval
+[-0.0013, 0.0018]). Natural CDR3-beta length varies by 3 to 4 residues, which falls in the small-gap
+regime where Phase 1 already measured GSI at or below 1.8. The sensitivity is real and large at
+offsets of 25 or more, and receptors do not generate offsets that large. On this evidence a reader
+deciding whether to adopt a chain-aware positional module should decline. Section 8 gives the Phase
+2 results in full.
 
 ## 1. Motivation and framing
 
@@ -254,10 +257,10 @@ the decision log and are not regenerated from `results/`.
    reference, fixed before the rerun and evaluated blind, is the first item of future work.
 3. **Untrained backbone.** Zero-shot ESM-2 does not discriminate binders. Nothing is shown about a
    fine-tuned interface model, which is the claim that would matter.
-4. **Phase 2 is a dev loop, not the planned experiment.** 35M, one seed, 300 steps, no
-   learning-rate check, no 650M arms, and the plan's reported H2 metric (held-out binding AUROC)
-   does not exist because the backbone cannot discriminate binding. The arms show the harness works
-   and the module trains without diverging. They do not test H2.
+4. **Phase 2 ran at dev-loop scale.** 35M, 300 steps, and no 650M arms; the masked-LM arms are one
+   seed each. H2 is tested on the binding classifier at three seeds per arm (8.7), and the answer is
+   negative, but with every AUROC interval covering 0.5 the test is underpowered as well as
+   negative. A larger backbone, more steps or validated negatives could all change it.
 5. **650M main sample is thin.** n = 250, 9 alleles, effective sample size 1.96, five gaps. The
    balanced run at 51 alleles supersedes it and reverses its gap-100 reading.
 6. **Allele concentration.** Effective sample size 1.92 in the main runs. The balanced runs at 51
@@ -376,13 +379,54 @@ the MHC margin at or below zero, so LoRA at this scale damages the scorer regard
 Length sensitivity does not separate the arms, because the shuffled null tracks the observed slope in
 each. A5's lower raw slope comes with a matching drop in its null floor, which agrees with 8.4.
 
-### 8.7 Phase 2 verdict
+### 8.7 The binding classifier: H2 tested directly
+
+H2 asks whether the chain-aware module improves held-out binding prediction. The MLM arms in 8.6
+cannot answer it, so a binary classifier was trained on the same arms: LayerNorm plus Linear on the
+mean over residue tokens, 2,400 positives from the `train` shard plus one decoy each, 300 steps at
+batch 16, ESM-2 35M on CPU, three seeds per arm, 1,663,201 trainable parameters in every arm.
+Mean pooling rather than `<cls>`, which ESM-2 never trains as a sequence summary. Evaluation is
+fixed across seeds and arms: `test_allele` is 1,000 positives plus decoys over 7 alleles,
+`test_epitope` is 600 positives plus decoys over 5. Decoys are built inside each held-out shard, so
+decoy antigens are held out too. A4 trains here without hitting a gate, because G2 is defined on the
+MLM objective.
+
+The learning rate was picked on A0 by held-out-allele AUROC across 1e-4, 5e-4 and 1e-3, which gave
+0.590, 0.628 and 0.600. There was no validation eval, so this is mild test-set selection applied
+only to the baseline, which if anything favors A0. 5e-4 was then used for every arm.
+
+| Arm | Allele AUROC mean (sd) | Epitope AUROC mean (sd) | Allele delta vs A0 [CI] | Epitope delta vs A0 [CI] |
+|---|---|---|---|---|
+| A0 | 0.537 (0.097) | 0.466 (0.036) | n/a | n/a |
+| A4 full | 0.476 (0.120) | 0.570 (0.043) | -0.061 [-0.103, 0.049] | +0.104 [-0.143, 0.113] |
+| A5 A4 plus augmentation | 0.581 (0.062) | 0.547 (0.026) | +0.044 [-0.080, 0.089] | +0.081 [-0.054, 0.095] |
+
+**H2 is not supported** (`fig7_h2_classifier.png`). Every delta interval contains zero, every AUROC interval contains 0.5, the
+two A4 deltas have opposite sign, and the seed standard deviation of 0.03 to 0.12 is as large as the
+deltas themselves. The intervals are cluster bootstraps over MHC allele of the seed-mean AUROC and
+exclude seed variance, so the seed spread is the more informative number. Per-seed held-out-allele
+AUROC makes the scale of the noise plain: A0 gives 0.628, 0.548, 0.435.
+
+One asymmetry is worth recording without a claim attached. A0 and A4 drive training loss from 0.69 to
+0.16 to 0.32 while held-out AUROC stays near chance, the signature of fitting something that does not
+transfer. A5, whose only difference from A4 is chain-order augmentation, never fits: its final
+training loss is 0.682, 0.691 and 0.485. It also has the highest held-out mean and the smallest seed
+spread of the three. The reading that the augmentation removes a layout shortcut the other arms learn
+is consistent with the numbers and not established by them, since the delta still spans zero.
+
+This is a weak proxy for binding. Negatives are mismatched decoys, a real receptor paired with the
+antigen of a different epitope, so some are false negatives from cross-reactivity and unrelated
+antigens are easier to separate than genuine non-binders. The notice is carried in
+`src/cla/train/classifier.py` and in every metrics JSON it writes.
+
+### 8.8 Phase 2 verdict
 
 The module does what it was designed to do on the permutation axis and costs score quality to do it.
 On the axis that motivated the project, native chain-length variation, there is no baseline effect
-for it to fix. Training at dev-loop scale neither rescues it nor condemns it: the arms are
-indistinguishable from baseline except per-chain reset, which is worse, and the full module failed
-its mid-training gate. The honest recommendation is against adopting it for this setting.
+for it to fix. Trained directly on binding, it does not beat the matched baseline on
+either held-out shard, with every delta interval spanning zero. On the masked-LM objective the arms
+are indistinguishable from baseline except per-chain reset, which is worse, and the full module
+failed its mid-training gate. The honest recommendation is against adopting it for this setting.
 
 What would change that: full-length TCR variable domains instead of CDR3 loops, where length varies
 by far more than 3 to 4 residues and could reach the offset regime where Phase 1 shows the model is
@@ -393,10 +437,12 @@ protecting.
 
 Where the estimator passes its own check, ESM-2 treats a content-free change in position indices at
 chain breaks as 4.8 to 10.5 times as large as twenty real substitutions. The effect holds across 51
-alleles at 150M and acts on genuine cross-chain computation. Scale lowers it without removing it. H1
+alleles at both 150M and 650M and acts on genuine cross-chain computation. Scale lowers it without removing it. H1
 is supported for the one target where it can be tested.
 
-H2 is not. The artifact needs an offset of 25 or more to appear, and the nuisance that motivated the
+H2 is not. Trained on binding at three seeds per arm, neither the full module nor its augmented
+variant beats the matched baseline on held-out alleles or held-out epitopes, and every delta interval
+covers zero. The deeper reason is that the artifact needs an offset of 25 or more to appear, and the nuisance that motivated the
 project, CDR3-beta length variation, moves offsets by 3 to 4. Phase 2 measured no length-attributable
 effect in the baseline, so the module has nothing to fix on that axis, and the arms that most reduce
 permutation sensitivity have degraded into unusable scorers. The recommendation is against adopting a
@@ -420,5 +466,5 @@ to establish:
 
 Artifacts: `results/phase1/` (run `nsi.json` and `summary.tsv`, `mhc_cluster_ci.tsv`,
 `context_gain.json`, `gate_g1_gsi.json`, `figures/`), `results/phase2/` (`zeroshot_gsi.json`,
-`noncircular_eval.json`, `training/`), `src/cla/model/positional.py`, `docs/DECISIONS.md`,
+`noncircular_eval.json`, `training/`, `classifier/`), `src/cla/model/positional.py`, `docs/DECISIONS.md`,
 `docs/COMPUTE_LOG.md`, `data/SOURCES.md`.
