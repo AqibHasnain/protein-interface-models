@@ -71,7 +71,7 @@ def _summary(values: np.ndarray, boot: dict, seed: int) -> dict[str, Any]:
     }
 
 
-def context_gain(
+def score_conditions(
     model,
     tokenizer,
     specs: Sequence[ChainSpec],
@@ -85,19 +85,18 @@ def context_gain(
     render_kwargs: dict[str, Any] | None = None,
     dropout_arms: Sequence[bool] = (True, False),
     scramble: bool = True,
-    boot: dict[str, Any] | None = None,
     seed: int = 0,
-) -> dict[str, Any]:
-    """Score `target_role` alone, in its complex, and in a scrambled complex, per dropout arm.
+) -> tuple[list[str], dict[str, dict[str, np.ndarray]]]:
+    """Per-example PLL of `target_role` alone, in its complex, and in a scrambled complex.
 
-    Specs lacking the role, or whose complex does not render under `render_kwargs`, are
-    dropped, so every condition is scored on the same examples. `method` and the window
-    parameters are those of `cla.model.scoring.score_many`.
+    Returns the kept example ids and `{arm: {condition: pll}}` with arm keys "true"/"false"
+    for token dropout. Specs lacking the role, or whose complex does not render under
+    `render_kwargs`, are dropped, so every condition is scored on the same examples. `method`
+    and the window parameters are those of `cla.model.scoring.score_many`.
     """
     render_kwargs = {"separator_tokens": 1, "symmetric_ends": True, "max_length": 512} | (
         render_kwargs or {}
     )
-    boot = boot or {"n_boot": 10000, "alpha": 0.05}
     conditions: dict[str, list] = {"complex": [], "alone": [], "alone_padded": []}
     if scramble:
         conditions["scrambled"] = []
@@ -129,15 +128,37 @@ def context_gain(
         "stride": stride,
         "max_windows": max_windows,
     }
-    arms: dict[str, Any] = {}
+    plls: dict[str, dict[str, np.ndarray]] = {}
     for enabled in dropout_arms:
         with token_dropout(model, enabled):
-            pll = {
+            plls["true" if enabled else "false"] = {
                 name: score_many(
                     model, tokenizer, r, [target_role], desc=f"{target_role} {name}", **score_kw
                 )
                 for name, r in conditions.items()
             }
+    return kept, plls
+
+
+def context_gain(
+    model,
+    tokenizer,
+    specs: Sequence[ChainSpec],
+    target_role: str,
+    *,
+    boot: dict[str, Any] | None = None,
+    seed: int = 0,
+    **kwargs: Any,
+) -> dict[str, Any]:
+    """Summarize `score_conditions` with example-level bootstrap intervals.
+
+    Keyword arguments other than `boot` are those of `score_conditions`.
+    """
+    boot = boot or {"n_boot": 10000, "alpha": 0.05}
+    scramble = kwargs.get("scramble", True)
+    kept, plls = score_conditions(model, tokenizer, specs, target_role, seed=seed, **kwargs)
+    arms: dict[str, Any] = {}
+    for arm, pll in plls.items():
         entry: dict[str, Any] = {
             "median_pll": {k: float(np.median(v)) for k, v in pll.items()},
             "context_gain": _summary(pll["complex"] - pll["alone"], boot, seed),
@@ -150,7 +171,7 @@ def context_gain(
             entry["complex_minus_scrambled"] = _summary(
                 pll["complex"] - pll["scrambled"], boot, seed
             )
-        arms["true" if enabled else "false"] = entry
+        arms[arm] = entry
     return {"target": target_role, "n": len(kept), "arms": arms}
 
 

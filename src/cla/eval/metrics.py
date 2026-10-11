@@ -252,3 +252,59 @@ def bootstrap_ci(
         raise ValueError(f"{n_boot - len(draws)} of {n_boot} bootstrap resamples were invalid")
     lo, hi = np.percentile(draws, [100 * alpha / 2, 100 * (1 - alpha / 2)])
     return point, float(lo), float(hi)
+
+
+def cluster_bootstrap_ci(
+    fn: Callable[..., float],
+    *arrays: object,
+    clusters: object,
+    n_boot: int = 10000,
+    alpha: float = 0.05,
+    seed: int = 0,
+) -> tuple[float, float, float]:
+    """Percentile bootstrap that resamples whole clusters. Returns ``(point, lo, hi)``.
+
+    Examples that share a cluster (here: the same MHC allele, hence the same MHC heavy-chain
+    sequence and near-identical scores) are not independent observations. Resampling
+    examples treats every duplicate as new information and understates the variance by
+    roughly the design effect; the cluster is the unit that is actually exchangeable, so
+    each draw picks ``n_clusters`` clusters with replacement and keeps all of their members.
+    A cluster drawn twice contributes its members twice. The draw size is a number of
+    clusters, so the resampled example count varies with the sizes of the clusters drawn.
+
+    All arrays are indexed by the same rebuilt index set, preserving per-example pairing.
+    ``clusters`` has one label per example. The point estimate is ``fn`` on the full data.
+    Resamples where ``fn`` raises ValueError are discarded; if more than half fail,
+    ValueError is raised. With a single cluster the interval is undefined and ValueError is
+    raised.
+    """
+    if not arrays:
+        raise ValueError("at least one array is required")
+    data = [np.asarray(x) for x in arrays]
+    labels = np.asarray(clusters)
+    if labels.ndim != 1 or any(len(d) != len(labels) for d in data):
+        raise ValueError("clusters must be 1-D with one label per example in every array")
+    if not 0 < alpha < 1:
+        raise ValueError("alpha must be in (0, 1)")
+
+    _, inverse = np.unique(labels, return_inverse=True)
+    order = np.argsort(inverse, kind="stable")
+    members = np.split(order, np.cumsum(np.bincount(inverse))[:-1])
+    n_clusters = len(members)
+    if n_clusters < 2:
+        raise ValueError("cluster bootstrap needs at least two clusters")
+
+    point = float(fn(*data))
+    rng = np.random.default_rng(seed)
+    draws: list[float] = []
+    for _ in range(n_boot):
+        picked = rng.integers(0, n_clusters, size=n_clusters)
+        idx = np.concatenate([members[c] for c in picked])
+        try:
+            draws.append(float(fn(*[d[idx] for d in data])))
+        except ValueError:
+            continue
+    if len(draws) < n_boot / 2:
+        raise ValueError(f"{n_boot - len(draws)} of {n_boot} bootstrap resamples were invalid")
+    lo, hi = np.percentile(draws, [100 * alpha / 2, 100 * (1 - alpha / 2)])
+    return point, float(lo), float(hi)

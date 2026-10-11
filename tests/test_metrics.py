@@ -5,6 +5,7 @@ from cla.eval.metrics import (
     auprc,
     auroc,
     bootstrap_ci,
+    cluster_bootstrap_ci,
     decision_flip_rate,
     delta_auroc,
     length_stratified_nsi,
@@ -126,3 +127,17 @@ def test_length_stratified_nsi_under_populated_bin_is_none():
     # Every |diff| is 1; medians are 0.5 and -2, separation 2.5, so NSI = 1 / 2.5 = 0.4.
     assert out["[0,200)"] == {"n": 30, "nsi": pytest.approx(0.4)}
     assert out["[200,400)"] == {"n": 3, "nsi": None}
+
+
+def test_cluster_bootstrap_is_wider_when_examples_are_duplicated_within_clusters():
+    # Eight clusters of 100 identical examples: only eight independent values exist, but the
+    # example-level bootstrap sees 800 and reports a far narrower interval.
+    cluster_values = np.array([0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0])
+    x = np.repeat(cluster_values, 100)
+    clusters = np.repeat(np.arange(8), 100)
+    point, lo, hi = cluster_bootstrap_ci(np.mean, x, clusters=clusters, n_boot=2000)
+    ex_point, ex_lo, ex_hi = bootstrap_ci(np.mean, x, n_boot=2000)
+    assert point == ex_point == pytest.approx(3.5)
+    assert lo < point < hi
+    assert (hi - lo) > 3 * (ex_hi - ex_lo)
+    assert (point, lo, hi) == cluster_bootstrap_ci(np.mean, x, clusters=clusters, n_boot=2000)

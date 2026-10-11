@@ -537,3 +537,35 @@ honest width.
 
 Recorded before seeing the recomputed intervals, so that whatever they come out
 as is what gets published.
+
+## 2026-10-10 - The headline survives the cluster bootstrap, but the sample is two alleles deep
+
+Recomputing the MHC_HEAVY intervals with the allele as the resampling unit
+widens them by 1.6x to 3.8x, as expected, and the headline holds.
+
+| Model | Gap | GSI | Cluster CI | Example CI |
+|---|---|---|---|---|
+| 150M | 25 | 8.59 | [6.77, 9.40] | [7.89, 9.51] |
+| 150M | 100 | 10.52 | [9.78, 16.11] | [9.67, 11.64] |
+| 650M | 25 | 4.83 | [1.96, 5.66] | [4.24, 5.77] |
+| 650M | 100 | 5.08 | [2.39, 5.97] | [4.42, 6.04] |
+
+Gaps 1 and 2 now fall below 1.0 under the correct interval, where the
+example-level bootstrap had them marginally above. Those small-gap claims are
+withdrawn. Gap 0 remains exactly 0.0.
+
+**The diagnostic matters more than the intervals.** The audited sample holds 14
+distinct alleles at 150M and 9 at 650M, HLA-A*02:01 accounts for 69% of
+examples, and Kish's effective sample size is **1.92**. The cluster bootstrap is
+the right estimator, but run over an effective two alleles it cannot establish
+that the effect generalizes across MHC alleles. The result could be a property
+of HLA-A*02:01 and this data could not tell the difference.
+
+This is now the single largest threat to the Phase 1 claim, ahead of the
+estimator question. The example count of 1000 was never the real sample size.
+
+An allele-balanced confirmatory run is in progress: equal quotas per allele,
+MHC_HEAVY and G1 only, at 150M and 650M, reporting per-allele GSI so
+heterogeneity is visible rather than averaged away. The report states the
+headline at whatever strength that run supports, and reports the per-allele
+spread regardless of which way it comes out.

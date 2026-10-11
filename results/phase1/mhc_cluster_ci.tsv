@@ -1,0 +1,105 @@
+section	model	usable	operator	gap	token_dropout	quantity	point	cluster_lo	cluster_hi	example_lo	example_hi	width_ratio	cluster_lo_above_1
+gsi	35M	false	G1	0	dropout_on	gsi	0.0000	0.0000	0.0000	0.0000	0.0000		false
+gsi	35M	false	G1	1	dropout_on	gsi	0.4152	0.2356	0.4442	0.3901	0.4513	3.41	false
+gsi	35M	false	G1	2	dropout_on	gsi	0.5664	0.3367	0.6372	0.5195	0.6196	3.00	false
+gsi	35M	false	G1	5	dropout_on	gsi	1.0024	0.5355	1.0570	0.9513	1.0676	4.49	false
+gsi	35M	false	G1	10	dropout_on	gsi	1.2044	0.5879	1.2867	1.1425	1.2874	4.82	false
+gsi	35M	false	G1	25	dropout_on	gsi	1.7274	0.8233	2.1174	1.6130	1.8809	4.83	false
+gsi	35M	false	G1	50	dropout_on	gsi	2.1557	0.6977	2.5855	2.0004	2.3273	5.77	false
+gsi	35M	false	G1	100	dropout_on	gsi	2.8096	0.9322	5.3281	2.6145	3.0577	9.92	false
+gsi	35M	false	G1	150	dropout_on	gsi	3.6301	0.6858	4.2135	3.3880	3.9088	6.77	false
+gsi	35M	false	G1	400 (ood)	dropout_on	gsi	7.4264	3.8564	10.5491	6.8833	7.9472	6.29	true
+gsi	35M	false	G2	0	dropout_on	gsi	0.0000	0.0000	0.0000	0.0000	0.0000		false
+gsi	35M	false	G2	1	dropout_on	gsi	0.1460	0.0952	0.2413	0.1322	0.1600	5.26	false
+gsi	35M	false	G2	2	dropout_on	gsi	0.1490	0.1268	0.2393	0.1361	0.1651	3.88	false
+gsi	35M	false	G2	5	dropout_on	gsi	0.1735	0.1457	0.3047	0.1578	0.1939	4.40	false
+gsi	35M	false	G2	10	dropout_on	gsi	0.2212	0.2000	0.3424	0.2003	0.2418	3.43	false
+gsi	35M	false	G2	25	dropout_on	gsi	0.2917	0.2683	0.5264	0.2721	0.3210	5.28	false
+gsi	35M	false	G2	50	dropout_on	gsi	0.2777	0.2506	0.5601	0.2575	0.3057	6.42	false
+gsi	35M	false	G2	100	dropout_on	gsi	0.2999	0.2492	0.6068	0.2664	0.3309	5.55	false
+gsi	35M	false	G2	150	dropout_on	gsi	0.4073	0.3295	0.7624	0.3742	0.4496	5.74	false
+gsi	35M	false	G2	400 (ood)	dropout_on	gsi	0.5212	0.4484	1.1252	0.4762	0.5710	7.14	false
+gsi	35M	false	G1	0	dropout_off	gsi	0.0000	0.0000	0.0000	0.0000	0.0000		false
+gsi	35M	false	G1	1	dropout_off	gsi	0.8783	0.5788	0.9655	0.8160	0.9489	2.91	false
+gsi	35M	false	G1	2	dropout_off	gsi	1.8223	1.1820	1.9321	1.6968	1.9546	2.91	true
+gsi	35M	false	G1	5	dropout_off	gsi	4.1649	3.4181	4.3568	3.8717	4.4502	1.62	true
+gsi	35M	false	G1	10	dropout_off	gsi	7.1879	6.3748	7.5808	6.6776	7.6538	1.24	true
+gsi	35M	false	G1	25	dropout_off	gsi	13.7571	11.8021	14.8300	12.7993	14.6739	1.62	true
+gsi	35M	false	G1	50	dropout_off	gsi	17.4241	13.9284	18.4131	16.1899	18.5667	1.89	true
+gsi	35M	false	G1	100	dropout_off	gsi	21.1530	19.1361	24.4049	19.6345	22.5273	1.82	true
+gsi	35M	false	G1	150	dropout_off	gsi	30.4528	28.1921	37.7780	28.2649	32.4347	2.30	true
+gsi	35M	false	G1	400 (ood)	dropout_off	gsi	24.0838	22.2088	30.4133	22.3550	25.6774	2.47	true
+gsi	35M	false	G2	0	dropout_off	gsi	0.0000	0.0000	0.0000	0.0000	0.0000		false
+gsi	35M	false	G2	1	dropout_off	gsi	0.1902	0.0709	0.2166	0.1726	0.2168	3.30	false
+gsi	35M	false	G2	2	dropout_off	gsi	0.2936	0.1014	0.3840	0.2649	0.3245	4.74	false
+gsi	35M	false	G2	5	dropout_off	gsi	0.4575	0.1521	0.5332	0.4093	0.4983	4.28	false
+gsi	35M	false	G2	10	dropout_off	gsi	0.6599	0.1992	0.8398	0.5897	0.7212	4.87	false
+gsi	35M	false	G2	25	dropout_off	gsi	0.6673	0.2526	0.9088	0.5959	0.7430	4.46	false
+gsi	35M	false	G2	50	dropout_off	gsi	1.5927	0.6848	2.0112	1.4580	1.7568	4.44	false
+gsi	35M	false	G2	100	dropout_off	gsi	2.2005	1.1784	2.4462	2.0108	2.3610	3.62	true
+gsi	35M	false	G2	150	dropout_off	gsi	3.1113	2.1351	3.3377	2.8630	3.3350	2.55	true
+gsi	35M	false	G2	400 (ood)	dropout_off	gsi	4.5899	4.3208	5.6459	4.2509	4.8887	2.08	true
+gsi	150M	true	G1	0	dropout_on	gsi	0.0000	0.0000	0.0000	0.0000	0.0000		false
+gsi	150M	true	G1	1	dropout_on	gsi	0.7100	0.6838	0.9157	0.6427	0.8080	1.40	false
+gsi	150M	true	G1	2	dropout_on	gsi	0.7815	0.6256	1.2985	0.7091	0.8862	3.80	false
+gsi	150M	true	G1	5	dropout_on	gsi	2.2754	1.8146	2.9623	2.0619	2.5480	2.36	true
+gsi	150M	true	G1	10	dropout_on	gsi	5.7085	4.5383	7.7677	5.2488	6.3243	3.00	true
+gsi	150M	true	G1	25	dropout_on	gsi	8.5928	6.7737	9.3967	7.8906	9.5055	1.62	true
+gsi	150M	true	G1	50	dropout_on	gsi	11.5158	9.6079	16.1680	10.5882	12.7424	3.05	true
+gsi	150M	true	G1	100	dropout_on	gsi	10.5240	9.7812	16.1136	9.6698	11.6448	3.21	true
+gsi	150M	true	G1	150	dropout_on	gsi	12.4630	10.1857	17.9675	11.4549	13.7988	3.32	true
+gsi	150M	true	G1	400 (ood)	dropout_on	gsi	18.4330	15.1679	28.4681	16.9120	20.3964	3.82	true
+gsi	150M	true	G2	0	dropout_on	gsi	0.0000	0.0000	0.0000	0.0000	0.0000		false
+gsi	150M	true	G2	1	dropout_on	gsi	0.2007	0.1777	0.3680	0.1730	0.2282	3.45	false
+gsi	150M	true	G2	2	dropout_on	gsi	0.2745	0.2443	0.4694	0.2384	0.3129	3.02	false
+gsi	150M	true	G2	5	dropout_on	gsi	0.3374	0.3230	0.5049	0.3017	0.3836	2.22	false
+gsi	150M	true	G2	10	dropout_on	gsi	0.3562	0.3329	0.4391	0.3155	0.4094	1.13	false
+gsi	150M	true	G2	25	dropout_on	gsi	0.4999	0.3798	0.7618	0.4473	0.5670	3.19	false
+gsi	150M	true	G2	50	dropout_on	gsi	0.6196	0.4040	0.8999	0.5626	0.6944	3.76	false
+gsi	150M	true	G2	100	dropout_on	gsi	0.7901	0.4355	0.9298	0.7147	0.8844	2.91	false
+gsi	150M	true	G2	150	dropout_on	gsi	0.7867	0.4914	1.0682	0.7082	0.8814	3.33	false
+gsi	150M	true	G2	400 (ood)	dropout_on	gsi	0.4790	0.4457	1.1527	0.4256	0.5457	5.89	false
+gsi	150M	true	G1	0	dropout_off	gsi	0.0000	0.0000	0.0000	0.0000	0.0000		false
+gsi	150M	true	G1	1	dropout_off	gsi	0.5254	0.4660	0.6435	0.4686	0.5940	1.42	false
+gsi	150M	true	G1	2	dropout_off	gsi	1.0539	0.7530	1.3485	0.9675	1.1668	2.99	false
+gsi	150M	true	G1	5	dropout_off	gsi	3.0520	2.4486	3.5276	2.8293	3.3732	1.98	true
+gsi	150M	true	G1	10	dropout_off	gsi	6.6990	5.3611	7.5551	6.2233	7.3983	1.87	true
+gsi	150M	true	G1	25	dropout_off	gsi	9.6396	7.4819	10.6496	8.9540	10.6503	1.87	true
+gsi	150M	true	G1	50	dropout_off	gsi	13.5482	11.4234	15.1984	12.5731	14.9546	1.59	true
+gsi	150M	true	G1	100	dropout_off	gsi	18.1395	15.6372	21.5852	16.8410	20.0461	1.86	true
+gsi	150M	true	G1	150	dropout_off	gsi	19.9282	16.6794	23.1069	18.4880	22.0197	1.82	true
+gsi	150M	true	G1	400 (ood)	dropout_off	gsi	22.3996	18.7858	25.7521	20.7966	24.7529	1.76	true
+gsi	150M	true	G2	0	dropout_off	gsi	0.0000	0.0000	0.0000	0.0000	0.0000		false
+gsi	150M	true	G2	1	dropout_off	gsi	0.2543	0.1636	0.2843	0.2317	0.2887	2.12	false
+gsi	150M	true	G2	2	dropout_off	gsi	0.2434	0.2049	0.3322	0.2201	0.2748	2.33	false
+gsi	150M	true	G2	5	dropout_off	gsi	0.3237	0.2344	0.3492	0.2867	0.3642	1.48	false
+gsi	150M	true	G2	10	dropout_off	gsi	0.3192	0.2611	0.3830	0.2890	0.3613	1.68	false
+gsi	150M	true	G2	25	dropout_off	gsi	0.4572	0.3050	0.6100	0.4120	0.5157	2.94	false
+gsi	150M	true	G2	50	dropout_off	gsi	0.4550	0.2878	0.6513	0.4017	0.5114	3.31	false
+gsi	150M	true	G2	100	dropout_off	gsi	0.6430	0.4051	0.7935	0.5793	0.7207	2.75	false
+gsi	150M	true	G2	150	dropout_off	gsi	0.6298	0.5010	0.7833	0.5658	0.7161	1.88	false
+gsi	150M	true	G2	400 (ood)	dropout_off	gsi	0.5355	0.5082	0.7251	0.4908	0.6113	1.80	false
+gsi	650M	true	G1	0	dropout_on	gsi	0.0000	0.0000	0.0000	0.0000	0.0000		false
+gsi	650M	true	G1	1	dropout_on	gsi	0.8360	0.5208	2.2937	0.6310	1.1527	3.40	false
+gsi	650M	true	G1	5	dropout_on	gsi	1.8465	1.1493	2.1075	1.6465	2.2166	1.68	true
+gsi	650M	true	G1	25	dropout_on	gsi	4.8273	1.9587	5.6610	4.2402	5.7711	2.42	true
+gsi	650M	true	G1	100	dropout_on	gsi	5.0789	2.3900	5.9652	4.4158	6.0446	2.19	true
+gsi	650M	true	G1	400 (ood)	dropout_on	gsi	5.3099	4.5992	7.0052	4.7587	6.3411	1.52	true
+gsi	650M	true	G2	0	dropout_on	gsi	0.0000	0.0000	0.0000	0.0000	0.0000		false
+gsi	650M	true	G2	1	dropout_on	gsi	0.3105	0.2569	0.3694	0.2548	0.3857	0.86	false
+gsi	650M	true	G2	5	dropout_on	gsi	0.3818	0.3531	0.4909	0.3131	0.4762	0.84	false
+gsi	650M	true	G2	25	dropout_on	gsi	0.3276	0.2583	0.5752	0.2521	0.4254	1.83	false
+gsi	650M	true	G2	100	dropout_on	gsi	0.3358	0.2659	0.6114	0.2624	0.4236	2.14	false
+gsi	650M	true	G2	400 (ood)	dropout_on	gsi	0.2956	0.2520	0.9352	0.2346	0.3836	4.58	false
+gsi	650M	true	G1	0	dropout_off	gsi	0.0000	0.0000	0.0000	0.0000	0.0000		false
+gsi	650M	true	G1	1	dropout_off	gsi	0.8278	0.6014	1.5039	0.6875	1.0726	2.34	false
+gsi	650M	true	G1	5	dropout_off	gsi	0.8010	0.5693	2.0254	0.5864	1.0127	3.42	false
+gsi	650M	true	G1	25	dropout_off	gsi	4.5511	1.3367	5.4439	3.9122	5.3274	2.90	true
+gsi	650M	true	G1	100	dropout_off	gsi	0.5733	0.2448	3.3539	0.4801	0.7334	12.28	false
+gsi	650M	true	G1	400 (ood)	dropout_off	gsi	11.8559	5.0057	13.9695	10.2868	13.8283	2.53	true
+gsi	650M	true	G2	0	dropout_off	gsi	0.0000	0.0000	0.0000	0.0000	0.0000		false
+gsi	650M	true	G2	1	dropout_off	gsi	0.2458	0.1485	0.2712	0.2074	0.2972	1.37	false
+gsi	650M	true	G2	5	dropout_off	gsi	0.3299	0.2003	0.3846	0.2775	0.3950	1.57	false
+gsi	650M	true	G2	25	dropout_off	gsi	0.1766	0.1369	0.4466	0.1439	0.2254	3.80	false
+gsi	650M	true	G2	100	dropout_off	gsi	0.4642	0.3630	0.4954	0.3844	0.5514	0.79	false
+gsi	650M	true	G2	400 (ood)	dropout_off	gsi	0.3154	0.2953	0.6416	0.2704	0.3829	3.08	false

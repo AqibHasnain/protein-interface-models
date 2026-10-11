@@ -1,0 +1,1665 @@
+{
+  "cluster_key": "mhc_allele",
+  "unit": "whole alleles resampled with replacement",
+  "models": {
+    "35M": {
+      "audit": {
+        "usable": false,
+        "geometry_population": {
+          "n_examples": 1000,
+          "n_clusters": 14,
+          "largest_cluster": "HLA-A*02:01",
+          "largest_cluster_fraction": 0.691,
+          "kish_n_eff": 1.9247129290666296,
+          "top_clusters": {
+            "HLA-A*02:01": 691,
+            "HLA-A*03:01": 200,
+            "HLA-B*08:01": 27,
+            "HLA-A*11:01": 25,
+            "HLA-A*01:01": 19
+          }
+        },
+        "gsi": {
+          "true": {
+            "G1": {
+              "0": {
+                "point": 0.0,
+                "cluster_ci": [
+                  0.0,
+                  0.0
+                ],
+                "example_ci": [
+                  0.0,
+                  0.0
+                ],
+                "width_ratio": null,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "1": {
+                "point": 0.4151590680855328,
+                "cluster_ci": [
+                  0.23561968109491302,
+                  0.4441574841653054
+                ],
+                "example_ci": [
+                  0.39009867567052675,
+                  0.45132135406235224
+                ],
+                "width_ratio": 3.40621822743117,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "2": {
+                "point": 0.5664448533409522,
+                "cluster_ci": [
+                  0.3366639756347885,
+                  0.6371915924939994
+                ],
+                "example_ci": [
+                  0.5195096565681434,
+                  0.6195945627466399
+                ],
+                "width_ratio": 3.0027266681275058,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "5": {
+                "point": 1.0024498254845815,
+                "cluster_ci": [
+                  0.5354635467250489,
+                  1.0569735335712842
+                ],
+                "example_ci": [
+                  0.9513364582139121,
+                  1.0675513411179054
+                ],
+                "width_ratio": 4.487462997979887,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "10": {
+                "point": 1.204352544598977,
+                "cluster_ci": [
+                  0.5878742687764581,
+                  1.2866552569106176
+                ],
+                "example_ci": [
+                  1.142467320799447,
+                  1.2874043654064005
+                ],
+                "width_ratio": 4.821272505101394,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "25": {
+                "point": 1.7274169372703956,
+                "cluster_ci": [
+                  0.8232670922535624,
+                  2.1173818618171985
+                ],
+                "example_ci": [
+                  1.6130414066153624,
+                  1.8808772677952674
+                ],
+                "width_ratio": 4.831745696273214,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "50": {
+                "point": 2.1556609305072567,
+                "cluster_ci": [
+                  0.6977336260787919,
+                  2.5854871533960826
+                ],
+                "example_ci": [
+                  2.0004172169222523,
+                  2.32730434488427
+                ],
+                "width_ratio": 5.774939928306498,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "100": {
+                "point": 2.809570310417835,
+                "cluster_ci": [
+                  0.9322247680406525,
+                  5.3280656982913905
+                ],
+                "example_ci": [
+                  2.6144832477747375,
+                  3.057707819032284
+                ],
+                "width_ratio": 9.91786379933442,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "150": {
+                "point": 3.6300934089246994,
+                "cluster_ci": [
+                  0.6857992754925422,
+                  4.213539331709891
+                ],
+                "example_ci": [
+                  3.3879757904298615,
+                  3.908845582433761
+                ],
+                "width_ratio": 6.7727868084754235,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "400": {
+                "point": 7.426395430403848,
+                "cluster_ci": [
+                  3.856422072273294,
+                  10.54905270352496
+                ],
+                "example_ci": [
+                  6.88332455829392,
+                  7.9471694942648385
+                ],
+                "width_ratio": 6.290983210954177,
+                "n_pairs": 1000,
+                "out_of_distribution": true,
+                "cluster_lower_bound_above_1": true
+              }
+            },
+            "G2": {
+              "0": {
+                "point": 0.0,
+                "cluster_ci": [
+                  0.0,
+                  0.0
+                ],
+                "example_ci": [
+                  0.0,
+                  0.0
+                ],
+                "width_ratio": null,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "1": {
+                "point": 0.14599595320385575,
+                "cluster_ci": [
+                  0.0951535643520395,
+                  0.24129585041514215
+                ],
+                "example_ci": [
+                  0.13217379330681997,
+                  0.15996617653534803
+                ],
+                "width_ratio": 5.258357473751726,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "2": {
+                "point": 0.14901719142113332,
+                "cluster_ci": [
+                  0.12682300032307384,
+                  0.23926825171995544
+                ],
+                "example_ci": [
+                  0.13611325817910214,
+                  0.16508032714377033
+                ],
+                "width_ratio": 3.8818304859919968,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "5": {
+                "point": 0.17346640711451494,
+                "cluster_ci": [
+                  0.14572990531365376,
+                  0.3046886057616059
+                ],
+                "example_ci": [
+                  0.15779301803514806,
+                  0.1938984967443384
+                ],
+                "width_ratio": 4.402619938327824,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "10": {
+                "point": 0.22117937029464002,
+                "cluster_ci": [
+                  0.1999840236450054,
+                  0.34236302759287907
+                ],
+                "example_ci": [
+                  0.20034376073090218,
+                  0.24184352995555278
+                ],
+                "width_ratio": 3.430838450622069,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "25": {
+                "point": 0.29168274653367815,
+                "cluster_ci": [
+                  0.2683280208635178,
+                  0.5263733321105946
+                ],
+                "example_ci": [
+                  0.2721304363412585,
+                  0.3210297248397869
+                ],
+                "width_ratio": 5.277077012170481,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "50": {
+                "point": 0.2776660774861251,
+                "cluster_ci": [
+                  0.2505911166651657,
+                  0.560096362322332
+                ],
+                "example_ci": [
+                  0.2574749309083239,
+                  0.3057151056492465
+                ],
+                "width_ratio": 6.415922979537016,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "100": {
+                "point": 0.2998637564417191,
+                "cluster_ci": [
+                  0.2492158548279902,
+                  0.6068208792773734
+                ],
+                "example_ci": [
+                  0.26641759540961335,
+                  0.3308996226798388
+                ],
+                "width_ratio": 5.545809267918398,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "150": {
+                "point": 0.4073106715592105,
+                "cluster_ci": [
+                  0.3294728042668592,
+                  0.7623672664522035
+                ],
+                "example_ci": [
+                  0.37419434340095664,
+                  0.44961882045968
+                ],
+                "width_ratio": 5.73944267254654,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "400": {
+                "point": 0.5212264905237168,
+                "cluster_ci": [
+                  0.4484245287548678,
+                  1.125164373668011
+                ],
+                "example_ci": [
+                  0.47624909083318884,
+                  0.5710477364305875
+                ],
+                "width_ratio": 7.138707949343461,
+                "n_pairs": 1000,
+                "out_of_distribution": true,
+                "cluster_lower_bound_above_1": false
+              }
+            }
+          },
+          "false": {
+            "G1": {
+              "0": {
+                "point": 0.0,
+                "cluster_ci": [
+                  0.0,
+                  0.0
+                ],
+                "example_ci": [
+                  0.0,
+                  0.0
+                ],
+                "width_ratio": null,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "1": {
+                "point": 0.8782990858922254,
+                "cluster_ci": [
+                  0.578814990011306,
+                  0.9654780049515468
+                ],
+                "example_ci": [
+                  0.8160313724916097,
+                  0.9489435895242397
+                ],
+                "width_ratio": 2.9091608248872625,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "2": {
+                "point": 1.8222536615615228,
+                "cluster_ci": [
+                  1.1820310677334478,
+                  1.9320949547036244
+                ],
+                "example_ci": [
+                  1.6968079882229727,
+                  1.9545888490403314
+                ],
+                "width_ratio": 2.9096957958473393,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": true
+              },
+              "5": {
+                "point": 4.164943699169764,
+                "cluster_ci": [
+                  3.418078063297052,
+                  4.3568151908455075
+                ],
+                "example_ci": [
+                  3.8717260641958595,
+                  4.450207423869997
+                ],
+                "width_ratio": 1.6227612382830332,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": true
+              },
+              "10": {
+                "point": 7.1878739075542155,
+                "cluster_ci": [
+                  6.374831926863464,
+                  7.58080102758134
+                ],
+                "example_ci": [
+                  6.677550704436318,
+                  7.653816942347917
+                ],
+                "width_ratio": 1.235287111124166,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": true
+              },
+              "25": {
+                "point": 13.757052102804781,
+                "cluster_ci": [
+                  11.80208804361729,
+                  14.830018154080747
+                ],
+                "example_ci": [
+                  12.799263966643732,
+                  14.67387246999199
+                ],
+                "width_ratio": 1.6152333167459976,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": true
+              },
+              "50": {
+                "point": 17.42410039125062,
+                "cluster_ci": [
+                  13.928449998050699,
+                  18.41314427771531
+                ],
+                "example_ci": [
+                  16.189894005328135,
+                  18.566718638816564
+                ],
+                "width_ratio": 1.8868427297820858,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": true
+              },
+              "100": {
+                "point": 21.153041114774283,
+                "cluster_ci": [
+                  19.13613610862758,
+                  24.404853499430583
+                ],
+                "example_ci": [
+                  19.63451119162637,
+                  22.527292349492395
+                ],
+                "width_ratio": 1.8213328638692057,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": true
+              },
+              "150": {
+                "point": 30.452818498971684,
+                "cluster_ci": [
+                  28.19209518466672,
+                  37.778047072763506
+                ],
+                "example_ci": [
+                  28.264937665454763,
+                  32.434713331102145
+                ],
+                "width_ratio": 2.2989130967093674,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": true
+              },
+              "400": {
+                "point": 24.083755292144204,
+                "cluster_ci": [
+                  22.208772166515423,
+                  30.41332436811452
+                ],
+                "example_ci": [
+                  22.355024488855417,
+                  25.677362783603108
+                ],
+                "width_ratio": 2.469511372327656,
+                "n_pairs": 1000,
+                "out_of_distribution": true,
+                "cluster_lower_bound_above_1": true
+              }
+            },
+            "G2": {
+              "0": {
+                "point": 0.0,
+                "cluster_ci": [
+                  0.0,
+                  0.0
+                ],
+                "example_ci": [
+                  0.0,
+                  0.0
+                ],
+                "width_ratio": null,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "1": {
+                "point": 0.1902489594161131,
+                "cluster_ci": [
+                  0.07091635696313021,
+                  0.21664608957960957
+                ],
+                "example_ci": [
+                  0.1725803473280497,
+                  0.2167546838003412
+                ],
+                "width_ratio": 3.2989682302956327,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "2": {
+                "point": 0.29360358772802503,
+                "cluster_ci": [
+                  0.10138650233435938,
+                  0.38397123542023576
+                ],
+                "example_ci": [
+                  0.26489705718422135,
+                  0.3245190467732536
+                ],
+                "width_ratio": 4.739605890942277,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "5": {
+                "point": 0.4575446235383867,
+                "cluster_ci": [
+                  0.15208446735097148,
+                  0.5332089513073233
+                ],
+                "example_ci": [
+                  0.40934237961014674,
+                  0.4982960632476473
+                ],
+                "width_ratio": 4.284527277245656,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "10": {
+                "point": 0.6599482273268705,
+                "cluster_ci": [
+                  0.1992400864750956,
+                  0.8398385326982587
+                ],
+                "example_ci": [
+                  0.5896897789905481,
+                  0.7212127156030582
+                ],
+                "width_ratio": 4.870621525966072,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "25": {
+                "point": 0.6672624278952323,
+                "cluster_ci": [
+                  0.252584273403801,
+                  0.9088212061837692
+                ],
+                "example_ci": [
+                  0.5958530303340543,
+                  0.7430340269973033
+                ],
+                "width_ratio": 4.458706950337092,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "50": {
+                "point": 1.5926794421667343,
+                "cluster_ci": [
+                  0.6848429860376027,
+                  2.0111952574725875
+                ],
+                "example_ci": [
+                  1.457989986423051,
+                  1.7567992126895058
+                ],
+                "width_ratio": 4.43879289808892,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "100": {
+                "point": 2.200539921392977,
+                "cluster_ci": [
+                  1.178372302580324,
+                  2.446192012651621
+                ],
+                "example_ci": [
+                  2.0108223399867136,
+                  2.3610423553745106
+                ],
+                "width_ratio": 3.6200663993102906,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": true
+              },
+              "150": {
+                "point": 3.1112593853305555,
+                "cluster_ci": [
+                  2.1351203724980126,
+                  3.337661312807478
+                ],
+                "example_ci": [
+                  2.862976053186127,
+                  3.3349534317334415
+                ],
+                "width_ratio": 2.547878341141541,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": true
+              },
+              "400": {
+                "point": 4.589938011090639,
+                "cluster_ci": [
+                  4.320791432246611,
+                  5.645928245078816
+                ],
+                "example_ci": [
+                  4.250903489220599,
+                  4.888696988738539
+                ],
+                "width_ratio": 2.0776894305661258,
+                "n_pairs": 1000,
+                "out_of_distribution": true,
+                "cluster_lower_bound_above_1": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "150M": {
+      "audit": {
+        "usable": true,
+        "geometry_population": {
+          "n_examples": 1000,
+          "n_clusters": 14,
+          "largest_cluster": "HLA-A*02:01",
+          "largest_cluster_fraction": 0.691,
+          "kish_n_eff": 1.9247129290666296,
+          "top_clusters": {
+            "HLA-A*02:01": 691,
+            "HLA-A*03:01": 200,
+            "HLA-B*08:01": 27,
+            "HLA-A*11:01": 25,
+            "HLA-A*01:01": 19
+          }
+        },
+        "gsi": {
+          "true": {
+            "G1": {
+              "0": {
+                "point": 0.0,
+                "cluster_ci": [
+                  0.0,
+                  0.0
+                ],
+                "example_ci": [
+                  0.0,
+                  0.0
+                ],
+                "width_ratio": null,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "1": {
+                "point": 0.7100163624971833,
+                "cluster_ci": [
+                  0.6838179285372243,
+                  0.915664194193977
+                ],
+                "example_ci": [
+                  0.6426769963377523,
+                  0.8080249753041715
+                ],
+                "width_ratio": 1.4021717538128409,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "2": {
+                "point": 0.7814727317346186,
+                "cluster_ci": [
+                  0.6255801128638953,
+                  1.2984832887698274
+                ],
+                "example_ci": [
+                  0.7091491443829719,
+                  0.8862046081986212
+                ],
+                "width_ratio": 3.8005219460866857,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "5": {
+                "point": 2.2753556853826797,
+                "cluster_ci": [
+                  1.8146047055739207,
+                  2.9623009506829288
+                ],
+                "example_ci": [
+                  2.0619254921957535,
+                  2.548037165347771
+                ],
+                "width_ratio": 2.3609724030430743,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": true
+              },
+              "10": {
+                "point": 5.708495459356881,
+                "cluster_ci": [
+                  4.538257729232566,
+                  7.767745872385878
+                ],
+                "example_ci": [
+                  5.248797947602425,
+                  6.32428501731781
+                ],
+                "width_ratio": 3.002814477358577,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": true
+              },
+              "25": {
+                "point": 8.592750684891204,
+                "cluster_ci": [
+                  6.773667266618483,
+                  9.396740692357117
+                ],
+                "example_ci": [
+                  7.8906119287608005,
+                  9.50549710640165
+                ],
+                "width_ratio": 1.6243095559094942,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": true
+              },
+              "50": {
+                "point": 11.515791782375445,
+                "cluster_ci": [
+                  9.607934278893413,
+                  16.167950656077934
+                ],
+                "example_ci": [
+                  10.588169934498474,
+                  12.742359236600237
+                ],
+                "width_ratio": 3.045236725845846,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": true
+              },
+              "100": {
+                "point": 10.524005461744053,
+                "cluster_ci": [
+                  9.781185538860022,
+                  16.1136038280787
+                ],
+                "example_ci": [
+                  9.669806788129607,
+                  11.644849777513567
+                ],
+                "width_ratio": 3.2062179523463614,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": true
+              },
+              "150": {
+                "point": 12.463002167178315,
+                "cluster_ci": [
+                  10.185725424954443,
+                  17.96747165077105
+                ],
+                "example_ci": [
+                  11.454936246726248,
+                  13.798824709786663
+                ],
+                "width_ratio": 3.3200155845538752,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": true
+              },
+              "400": {
+                "point": 18.432952544746115,
+                "cluster_ci": [
+                  15.167855186597746,
+                  28.46814457094385
+                ],
+                "example_ci": [
+                  16.911978888237282,
+                  20.396413665177047
+                ],
+                "width_ratio": 3.817057926401251,
+                "n_pairs": 1000,
+                "out_of_distribution": true,
+                "cluster_lower_bound_above_1": true
+              }
+            },
+            "G2": {
+              "0": {
+                "point": 0.0,
+                "cluster_ci": [
+                  0.0,
+                  0.0
+                ],
+                "example_ci": [
+                  0.0,
+                  0.0
+                ],
+                "width_ratio": null,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "1": {
+                "point": 0.20072344036381315,
+                "cluster_ci": [
+                  0.1776517998802217,
+                  0.3679864932416769
+                ],
+                "example_ci": [
+                  0.17302929435030315,
+                  0.2281533904825859
+                ],
+                "width_ratio": 3.4528401682034664,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "2": {
+                "point": 0.27451549422163796,
+                "cluster_ci": [
+                  0.24430456699058595,
+                  0.4694448064749756
+                ],
+                "example_ci": [
+                  0.2383517653848969,
+                  0.31288520229404587
+                ],
+                "width_ratio": 3.0206609116767265,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "5": {
+                "point": 0.33744156609225184,
+                "cluster_ci": [
+                  0.3230064297121131,
+                  0.5048518299157906
+                ],
+                "example_ci": [
+                  0.301696549303803,
+                  0.38364830212487094
+                ],
+                "width_ratio": 2.2189324077145205,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "10": {
+                "point": 0.3562223293589472,
+                "cluster_ci": [
+                  0.3328614272677917,
+                  0.43905563319743623
+                ],
+                "example_ci": [
+                  0.3154691799813474,
+                  0.40941765665717483
+                ],
+                "width_ratio": 1.1303451603166637,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "25": {
+                "point": 0.49985456301032505,
+                "cluster_ci": [
+                  0.37980631149254235,
+                  0.7618157873560624
+                ],
+                "example_ci": [
+                  0.4473433522077806,
+                  0.5670401297583385
+                ],
+                "width_ratio": 3.191476693699341,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "50": {
+                "point": 0.6196428201268745,
+                "cluster_ci": [
+                  0.40404221433236087,
+                  0.899904137363523
+                ],
+                "example_ci": [
+                  0.5626279390868202,
+                  0.6943504029222011
+                ],
+                "width_ratio": 3.7644446405957126,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "100": {
+                "point": 0.7900876165919867,
+                "cluster_ci": [
+                  0.4354770438043535,
+                  0.9297808710029228
+                ],
+                "example_ci": [
+                  0.7146761791322274,
+                  0.8843703013759533
+                ],
+                "width_ratio": 2.9129107164278647,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "150": {
+                "point": 0.7867021109426791,
+                "cluster_ci": [
+                  0.491410967936318,
+                  1.0681744317204198
+                ],
+                "example_ci": [
+                  0.708231932793334,
+                  0.8813557996536798
+                ],
+                "width_ratio": 3.331507516807955,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "400": {
+                "point": 0.4790330011574778,
+                "cluster_ci": [
+                  0.4456821830499499,
+                  1.15267126495744
+                ],
+                "example_ci": [
+                  0.42561922590488194,
+                  0.5457367016512219
+                ],
+                "width_ratio": 5.885813679605504,
+                "n_pairs": 1000,
+                "out_of_distribution": true,
+                "cluster_lower_bound_above_1": false
+              }
+            }
+          },
+          "false": {
+            "G1": {
+              "0": {
+                "point": 0.0,
+                "cluster_ci": [
+                  0.0,
+                  0.0
+                ],
+                "example_ci": [
+                  0.0,
+                  0.0
+                ],
+                "width_ratio": null,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "1": {
+                "point": 0.5253595214991904,
+                "cluster_ci": [
+                  0.4660242806262803,
+                  0.6434891582825062
+                ],
+                "example_ci": [
+                  0.4685842920790223,
+                  0.5939967194901821
+                ],
+                "width_ratio": 1.4150501773991997,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "2": {
+                "point": 1.0538854157591635,
+                "cluster_ci": [
+                  0.7530175178785912,
+                  1.3485396174025108
+                ],
+                "example_ci": [
+                  0.9674877734779779,
+                  1.166780877809514
+                ],
+                "width_ratio": 2.988172127286617,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "5": {
+                "point": 3.051968393351218,
+                "cluster_ci": [
+                  2.448629899037432,
+                  3.5275764362427884
+                ],
+                "example_ci": [
+                  2.829265830170962,
+                  3.373191922221768
+                ],
+                "width_ratio": 1.983627101133027,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": true
+              },
+              "10": {
+                "point": 6.699040249584677,
+                "cluster_ci": [
+                  5.3610962329462,
+                  7.555143698574366
+                ],
+                "example_ci": [
+                  6.223270037334041,
+                  7.398265067178052
+                ],
+                "width_ratio": 1.8672823372873684,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": true
+              },
+              "25": {
+                "point": 9.639630204312155,
+                "cluster_ci": [
+                  7.481939582812133,
+                  10.649586447824523
+                ],
+                "example_ci": [
+                  8.954048050658246,
+                  10.650278173947616
+                ],
+                "width_ratio": 1.8674629235269176,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": true
+              },
+              "50": {
+                "point": 13.548241371333813,
+                "cluster_ci": [
+                  11.423395848924905,
+                  15.198401960646324
+                ],
+                "example_ci": [
+                  12.5731023429295,
+                  14.95457990740888
+                ],
+                "width_ratio": 1.5851529185187527,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": true
+              },
+              "100": {
+                "point": 18.139465351650628,
+                "cluster_ci": [
+                  15.637186652184003,
+                  21.58520968373653
+                ],
+                "example_ci": [
+                  16.840979742202464,
+                  20.046146715377237
+                ],
+                "width_ratio": 1.855760739248136,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": true
+              },
+              "150": {
+                "point": 19.92820647814632,
+                "cluster_ci": [
+                  16.679368299512454,
+                  23.106850672256776
+                ],
+                "example_ci": [
+                  18.487991292195602,
+                  22.019674424561934
+                ],
+                "width_ratio": 1.8199487699899393,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": true
+              },
+              "400": {
+                "point": 22.399623880579078,
+                "cluster_ci": [
+                  18.785808842884812,
+                  25.752070596199047
+                ],
+                "example_ci": [
+                  20.796626964369857,
+                  24.752871124399046
+                ],
+                "width_ratio": 1.7608270550376843,
+                "n_pairs": 1000,
+                "out_of_distribution": true,
+                "cluster_lower_bound_above_1": true
+              }
+            },
+            "G2": {
+              "0": {
+                "point": 0.0,
+                "cluster_ci": [
+                  0.0,
+                  0.0
+                ],
+                "example_ci": [
+                  0.0,
+                  0.0
+                ],
+                "width_ratio": null,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "1": {
+                "point": 0.25430945135231753,
+                "cluster_ci": [
+                  0.16362526718041948,
+                  0.28432361195087075
+                ],
+                "example_ci": [
+                  0.23170265830852735,
+                  0.28869700803170567
+                ],
+                "width_ratio": 2.117724745640285,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "2": {
+                "point": 0.2433653375311305,
+                "cluster_ci": [
+                  0.2049436752782464,
+                  0.3321944060599336
+                ],
+                "example_ci": [
+                  0.22007653050292247,
+                  0.2747805319635885
+                ],
+                "width_ratio": 2.326168605292699,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "5": {
+                "point": 0.32372594052386344,
+                "cluster_ci": [
+                  0.2344304632897867,
+                  0.3492192954495896
+                ],
+                "example_ci": [
+                  0.2866897495012793,
+                  0.3641806969530233
+                ],
+                "width_ratio": 1.481319249984463,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "10": {
+                "point": 0.31919418216557066,
+                "cluster_ci": [
+                  0.2611268842941536,
+                  0.3829955812186356
+                ],
+                "example_ci": [
+                  0.2889691777131867,
+                  0.36131837505874387
+                ],
+                "width_ratio": 1.6844512640880835,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "25": {
+                "point": 0.4571841212714759,
+                "cluster_ci": [
+                  0.3049725758704265,
+                  0.6100077665594141
+                ],
+                "example_ci": [
+                  0.4120160124914261,
+                  0.5156913888917506
+                ],
+                "width_ratio": 2.942214451299865,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "50": {
+                "point": 0.45504178770882586,
+                "cluster_ci": [
+                  0.28778665305743345,
+                  0.6513032725574641
+                ],
+                "example_ci": [
+                  0.40172081756522626,
+                  0.5114446491629056
+                ],
+                "width_ratio": 3.3130142668816465,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "100": {
+                "point": 0.6429700666620604,
+                "cluster_ci": [
+                  0.40513078275081554,
+                  0.7935450037493968
+                ],
+                "example_ci": [
+                  0.5792928774242023,
+                  0.7206943218630695
+                ],
+                "width_ratio": 2.7468900515122145,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "150": {
+                "point": 0.6297510612155387,
+                "cluster_ci": [
+                  0.5010113118219099,
+                  0.7833498128026123
+                ],
+                "example_ci": [
+                  0.5657694199920071,
+                  0.7161227574753692
+                ],
+                "width_ratio": 1.8778332806343294,
+                "n_pairs": 1000,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "400": {
+                "point": 0.5355248097622817,
+                "cluster_ci": [
+                  0.5081897325670748,
+                  0.7250898515224901
+                ],
+                "example_ci": [
+                  0.490787511291609,
+                  0.6113145470755891
+                ],
+                "width_ratio": 1.799597223515595,
+                "n_pairs": 1000,
+                "out_of_distribution": true,
+                "cluster_lower_bound_above_1": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "650M": {
+      "audit": {
+        "usable": true,
+        "geometry_population": {
+          "n_examples": 250,
+          "n_clusters": 9,
+          "largest_cluster": "HLA-A*02:01",
+          "largest_cluster_fraction": 0.688,
+          "kish_n_eff": 1.9624466214518965,
+          "top_clusters": {
+            "HLA-A*02:01": 172,
+            "HLA-A*03:01": 45,
+            "HLA-A*11:01": 9,
+            "HLA-B*08:01": 9,
+            "HLA-A*01:01": 7
+          }
+        },
+        "gsi": {
+          "true": {
+            "G1": {
+              "0": {
+                "point": 0.0,
+                "cluster_ci": [
+                  0.0,
+                  0.0
+                ],
+                "example_ci": [
+                  0.0,
+                  0.0
+                ],
+                "width_ratio": null,
+                "n_pairs": 250,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "1": {
+                "point": 0.8360078607594459,
+                "cluster_ci": [
+                  0.5208093751223871,
+                  2.2937460770328104
+                ],
+                "example_ci": [
+                  0.6310442221844732,
+                  1.152717377864234
+                ],
+                "width_ratio": 3.3985584318599193,
+                "n_pairs": 250,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "5": {
+                "point": 1.8465173725885142,
+                "cluster_ci": [
+                  1.1492761684500197,
+                  2.107544491210087
+                ],
+                "example_ci": [
+                  1.646516417492721,
+                  2.2165660973714165
+                ],
+                "width_ratio": 1.6810259817424742,
+                "n_pairs": 250,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": true
+              },
+              "25": {
+                "point": 4.827339483300497,
+                "cluster_ci": [
+                  1.958725801896016,
+                  5.660982873518382
+                ],
+                "example_ci": [
+                  4.240165809927965,
+                  5.771144089536396
+                ],
+                "width_ratio": 2.418229651546245,
+                "n_pairs": 250,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": true
+              },
+              "100": {
+                "point": 5.078933659230462,
+                "cluster_ci": [
+                  2.3900492851783843,
+                  5.965185975056165
+                ],
+                "example_ci": [
+                  4.415823831004358,
+                  6.044623122359739
+                ],
+                "width_ratio": 2.194952262597551,
+                "n_pairs": 250,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": true
+              },
+              "400": {
+                "point": 5.3098931320616805,
+                "cluster_ci": [
+                  4.5992432847882725,
+                  7.005235034505614
+                ],
+                "example_ci": [
+                  4.758650158803523,
+                  6.341126965150151
+                ],
+                "width_ratio": 1.520396216910069,
+                "n_pairs": 250,
+                "out_of_distribution": true,
+                "cluster_lower_bound_above_1": true
+              }
+            },
+            "G2": {
+              "0": {
+                "point": 0.0,
+                "cluster_ci": [
+                  0.0,
+                  0.0
+                ],
+                "example_ci": [
+                  0.0,
+                  0.0
+                ],
+                "width_ratio": null,
+                "n_pairs": 250,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "1": {
+                "point": 0.31050670381625706,
+                "cluster_ci": [
+                  0.2569323500897115,
+                  0.3693846334001786
+                ],
+                "example_ci": [
+                  0.2548271458515912,
+                  0.3857170973383432
+                ],
+                "width_ratio": 0.8591361065776615,
+                "n_pairs": 250,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "5": {
+                "point": 0.3817832893062071,
+                "cluster_ci": [
+                  0.3531329219331233,
+                  0.49089601783536774
+                ],
+                "example_ci": [
+                  0.31314136148007055,
+                  0.476212276325267
+                ],
+                "width_ratio": 0.8448048263727668,
+                "n_pairs": 250,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "25": {
+                "point": 0.3276489933693178,
+                "cluster_ci": [
+                  0.2582749610241321,
+                  0.5752435296515183
+                ],
+                "example_ci": [
+                  0.25205619202540025,
+                  0.42542638227597374
+                ],
+                "width_ratio": 1.8282760615839935,
+                "n_pairs": 250,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "100": {
+                "point": 0.3358022890752795,
+                "cluster_ci": [
+                  0.2658685580026789,
+                  0.6113961620264116
+                ],
+                "example_ci": [
+                  0.26244755112109797,
+                  0.42362500245496054
+                ],
+                "width_ratio": 2.143771359853604,
+                "n_pairs": 250,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "400": {
+                "point": 0.2956045379163455,
+                "cluster_ci": [
+                  0.25200198927374556,
+                  0.9351955526959432
+                ],
+                "example_ci": [
+                  0.2345586293560128,
+                  0.38360789286239977
+                ],
+                "width_ratio": 4.583676211140231,
+                "n_pairs": 250,
+                "out_of_distribution": true,
+                "cluster_lower_bound_above_1": false
+              }
+            }
+          },
+          "false": {
+            "G1": {
+              "0": {
+                "point": 0.0,
+                "cluster_ci": [
+                  0.0,
+                  0.0
+                ],
+                "example_ci": [
+                  0.0,
+                  0.0
+                ],
+                "width_ratio": null,
+                "n_pairs": 250,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "1": {
+                "point": 0.8277738994529825,
+                "cluster_ci": [
+                  0.6013596957481221,
+                  1.5038692568475396
+                ],
+                "example_ci": [
+                  0.6875329086404964,
+                  1.0726301290142435
+                ],
+                "width_ratio": 2.343588874060187,
+                "n_pairs": 250,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "5": {
+                "point": 0.8010216202135972,
+                "cluster_ci": [
+                  0.5693439856278808,
+                  2.0253705547355816
+                ],
+                "example_ci": [
+                  0.5864409604628774,
+                  1.012737273736764
+                ],
+                "width_ratio": 3.4155270026279445,
+                "n_pairs": 250,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "25": {
+                "point": 4.551126334983069,
+                "cluster_ci": [
+                  1.3367096001709418,
+                  5.443898822868279
+                ],
+                "example_ci": [
+                  3.9122262456634647,
+                  5.327413780680561
+                ],
+                "width_ratio": 2.902222582569398,
+                "n_pairs": 250,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": true
+              },
+              "100": {
+                "point": 0.5733112789789008,
+                "cluster_ci": [
+                  0.2447785028188941,
+                  3.353930755300269
+                ],
+                "example_ci": [
+                  0.48013029929363665,
+                  0.7333805838074228
+                ],
+                "width_ratio": 12.276994114540166,
+                "n_pairs": 250,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "400": {
+                "point": 11.855907267517583,
+                "cluster_ci": [
+                  5.00569531667832,
+                  13.969532020103175
+                ],
+                "example_ci": [
+                  10.286752829912722,
+                  13.828271955469695
+                ],
+                "width_ratio": 2.531071098483794,
+                "n_pairs": 250,
+                "out_of_distribution": true,
+                "cluster_lower_bound_above_1": true
+              }
+            },
+            "G2": {
+              "0": {
+                "point": 0.0,
+                "cluster_ci": [
+                  0.0,
+                  0.0
+                ],
+                "example_ci": [
+                  0.0,
+                  0.0
+                ],
+                "width_ratio": null,
+                "n_pairs": 250,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "1": {
+                "point": 0.24579421724407396,
+                "cluster_ci": [
+                  0.14849997999439843,
+                  0.2711740882289645
+                ],
+                "example_ci": [
+                  0.20736792532448578,
+                  0.297161581095927
+                ],
+                "width_ratio": 1.366177901775355,
+                "n_pairs": 250,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "5": {
+                "point": 0.32993748371971865,
+                "cluster_ci": [
+                  0.2002932011609147,
+                  0.38455440572484173
+                ],
+                "example_ci": [
+                  0.2774647395999721,
+                  0.39504576311297285
+                ],
+                "width_ratio": 1.567099852158997,
+                "n_pairs": 250,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "25": {
+                "point": 0.17663089346183902,
+                "cluster_ci": [
+                  0.13690507046919193,
+                  0.44662984906290903
+                ],
+                "example_ci": [
+                  0.14386583476982065,
+                  0.22539210225791115
+                ],
+                "width_ratio": 3.7990795866983884,
+                "n_pairs": 250,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "100": {
+                "point": 0.46422870539202915,
+                "cluster_ci": [
+                  0.3630058822964443,
+                  0.49537310830267894
+                ],
+                "example_ci": [
+                  0.38440703794752434,
+                  0.5513844259973929
+                ],
+                "width_ratio": 0.7927254555371447,
+                "n_pairs": 250,
+                "out_of_distribution": false,
+                "cluster_lower_bound_above_1": false
+              },
+              "400": {
+                "point": 0.3154206824693931,
+                "cluster_ci": [
+                  0.2952740088105727,
+                  0.6415574786265281
+                ],
+                "example_ci": [
+                  0.2703742995589708,
+                  0.3828857926048915
+                ],
+                "width_ratio": 3.0777608619469885,
+                "n_pairs": 250,
+                "out_of_distribution": true,
+                "cluster_lower_bound_above_1": false
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
