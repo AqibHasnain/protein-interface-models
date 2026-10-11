@@ -10,6 +10,14 @@ sanity check. Peptide and CDR3-beta fail it at every size and support no claim. 
 untrained for binding. Gate G1 reads PROCEED on the admissible MHC conditions alone. Four earlier
 claims were withdrawn (section 6).
 
+Phase 2 then found that the artifact does not occur at the scale real receptors produce. Matched
+complexes differing only in CDR3-beta length show no length-attributable effect on the MHC score
+(excess over a shuffled-length null 0.0003 nats per residue, interval [-0.0013, 0.0018]). Natural
+CDR3-beta length varies by 3 to 4 residues, which falls in the small-gap regime where Phase 1 already
+measured GSI at or below 1.8. The sensitivity is real and large at offsets of 25 or more, and
+receptors do not generate offsets that large. On this evidence a reader deciding whether to adopt a
+chain-aware positional module should decline. Section 8 gives the Phase 2 results in full.
+
 ## 1. Motivation and framing
 
 Structure predictors insert a large residue-index offset at chain breaks. Sequence-level interface
@@ -256,14 +264,103 @@ the decision log and are not regenerated from `results/`.
 13. **Unverifiable numbers.** The unigram comparison, the 35M defect measurements and the pilot
     tables exist only in the decision log rather than in `results/`.
 
-## 8. Conclusion and what Phase 2 must establish
+## 8. Phase 2: the fix, and why it is not warranted on this evidence
+
+Gate G1 passed, so Phase 2 ran. Compute was local and free, so it ran at the plan's own dev-loop
+scale (section 7.3) rather than the budgeted 650M runs.
+
+### 8.1 The module
+
+`src/cla/model/positional.py`, 131 lines against the plan's 150-line ceiling. `ChainAwarePositions`
+exposes per-chain index reset, a learned chain-identity embedding and a chain-break offset, each
+independently switchable. ESM-2 takes `position_ids` and positions enter only through rotary
+embeddings, so reset and offset are pure index remaps with no parameters, and only the
+chain-identity embedding needs gradients. The embedding attaches by a forward hook on
+`model.esm.embeddings` and initializes to zero, so it is an exact no-op before training. With every
+flag off the module returns `position_ids=None` and the baseline path is untouched.
+
+Asserted in `tests/test_positional.py`: with reset enabled, each chain's position indices are
+identical under any chain order. Full embedding invariance under permutation does not hold, because
+concatenation order still changes which chains a residue attends to, and the test says so rather
+than claiming otherwise.
+
+### 8.2 Two findings about the plan's own prescription
+
+**The default offset of 200 does not fit.** With five chains, a 200-index break offset puts every
+layout past ESM-2's trained range of 1026, leaving the arm with no in-distribution examples. Offset
+100 already loses the gap-100 cell. On this backbone the usable range is roughly 50 or below.
+
+**The module is not free at inference.** Applying it zero-shot degrades the score: reset alone moves
+the median baseline by 0.66 nats, leaving a margin of 0.034 over the uniform prior against a 0.25
+usability bar. Reset plus offset 25 falls below the uniform prior outright. ESM-2 has never seen
+reset positions. Only A0 and offset-25 remain usable scorers.
+
+### 8.3 The circular arm
+
+Measuring per-chain reset against the Phase 1 gap operator returns exactly 0, because the operator
+injects a position gap and reset discards incoming positions. That is an implementation check, not
+evidence. It is reported as such and excluded from every claim.
+
+### 8.4 Native chain-length variation: the test that matters
+
+Complexes matched on allele and peptide, differing in CDR3-beta length; statistic is the median
+within-set slope of MHC score against CDR3-beta length, against a null with lengths shuffled within
+each set. 52 sets, 445 members, 28 alleles on the allele-balanced sample.
+
+| Arm | Margin | Usable | Sensitivity (nats/residue) | Excess over null | Ratio vs A0 |
+|---|---|---|---|---|---|
+| A0 | 0.687 | yes | 0.0039 [0.0025, 0.0053] | 0.0003 [-0.0013, 0.0018] | 1 |
+| A2 reset | 0.034 | no | 0.0026 [0.0017, 0.0035] | 0.0001 [-0.0006, 0.0008] | 0.68 [0.40, 1.17] |
+| A3 offset 25 | 0.401 | yes | 0.0026 [0.0020, 0.0034] | 0.0003 [-0.0001, 0.0011] | 0.66 [0.42, 1.16] |
+| A3 offset 50 | 0.222 | no | 0.0021 [0.0014, 0.0030] | -0.0003 [-0.0007, 0.0005] | 0.54 [0.34, 1.00] |
+| A2+A3 offset 25 | -0.527 | no | 0.0025 [0.0017, 0.0038] | -0.0007 [-0.0017, 0.0009] | 0.65 [0.44, 1.11] |
+| A2+A3 offset 50 | -0.114 | no | 0.0033 [0.0018, 0.0061] | -0.0004 [-0.0020, 0.0006] | 0.86 [0.43, 1.89] |
+
+The baseline excess over null contains zero, so there is no length-attributable effect to remove.
+Every ratio interval contains 1 except offset 50, which touches it. The measured slope is within-set
+variation from TCR content, mostly CDR3-alpha. On an extended pool (720 sets) the arms do cut the raw
+slope to 0.30 to 0.48 of A0, but the null falls by the same amount, so that is reduced total score
+variation rather than a removed length effect.
+
+### 8.5 Chain order permutation
+
+Permutation reorders tokens, so it cannot be erased by construction in the way the injected gap was.
+The baseline moves 0.561 nats [0.530, 0.590] under permutation and every arm reduces it: offset 25 to
+0.49 of A0, offset 50 to 0.20. The reduction is real. Two qualifications: reset's ratio of 0.004 is
+near-circular, since a reset layout presents the model with the same (token, position) multiset under
+any order; and of the arms that reduce sensitivity most, only offset 25 is still a usable scorer.
+
+### 8.6 Phase 2 verdict
+
+The module does what it was designed to do on the permutation axis and costs score quality to do it.
+On the axis that motivated the project, native chain-length variation, there is no baseline effect
+for it to fix. The honest recommendation is against adopting it for this setting.
+
+What would change that: full-length TCR variable domains instead of CDR3 loops, where length varies
+by far more than 3 to 4 residues and could reach the offset regime where Phase 1 shows the model is
+genuinely sensitive; and a backbone fine-tuned for binding, where the score carries signal worth
+protecting.
+
+## 9. Conclusion
 
 Where the estimator passes its own check, ESM-2 treats a content-free change in position indices at
 chain breaks as 4.8 to 10.5 times as large as twenty real substitutions. The effect holds across 51
 alleles at 150M and acts on genuine cross-chain computation. Scale lowers it without removing it. H1
 is supported for the one target where it can be tested.
 
-Phase 2 would need to establish:
+H2 is not. The artifact needs an offset of 25 or more to appear, and the nuisance that motivated the
+project, CDR3-beta length variation, moves offsets by 3 to 4. Phase 2 measured no length-attributable
+effect in the baseline, so the module has nothing to fix on that axis, and the arms that most reduce
+permutation sensitivity have degraded into unusable scorers. The recommendation is against adopting a
+chain-aware positional module for this setting.
+
+The two results together are the useful output: a real positional artifact, and the finding that
+natural chain geometry does not reach it. Either one alone would have been misleading. Reporting only
+the first would have motivated a fix nobody needs; reporting only the second would have missed a
+genuine defect that full-length chains could expose.
+
+Phase 2 ran at dev-loop scale and is reported in section 8. What a funded Phase 2 would still need
+to establish:
 
 1. That a model fine-tuned for binding shows the same sensitivity.
 2. That the module lowers GSI and preserves or improves held-out AUROC on strict allele and epitope
@@ -274,5 +371,6 @@ Phase 2 would need to establish:
 5. The H3 test of whether gains concentrate where chain lengths deviate from the training mode.
 
 Artifacts: `results/phase1/` (run `nsi.json` and `summary.tsv`, `mhc_cluster_ci.tsv`,
-`context_gain.json`, `gate_g1_gsi.json`, `figures/`), `docs/DECISIONS.md`, `docs/COMPUTE_LOG.md`,
-`data/SOURCES.md`.
+`context_gain.json`, `gate_g1_gsi.json`, `figures/`), `results/phase2/` (`zeroshot_gsi.json`,
+`noncircular_eval.json`, `training/`), `src/cla/model/positional.py`, `docs/DECISIONS.md`,
+`docs/COMPUTE_LOG.md`, `data/SOURCES.md`.
