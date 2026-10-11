@@ -115,3 +115,30 @@ def test_span_pll_real_model_is_deterministic_and_batch_consistent(esm35):
     assert score_many(model, tok, [rendered, rendered], {"PEPTIDE"})[0] == pytest.approx(
         a, abs=1e-4
     )
+
+
+def test_context_gain_is_zero_without_context_and_nonzero_with_it(esm35):
+    from cla.eval.context import context_gain
+    from cla.layout.spec import Chain, ChainSpec, Role
+
+    model, tok = esm35
+    # Without symmetric ends a lone chain's complex rendering equals the alone rendering, so
+    # any nonzero gain would mean the alone path drifted from the complex path.
+    kw = {
+        "boot": {"n_boot": 20, "alpha": 0.05},
+        "render_kwargs": {"max_length": 128, "symmetric_ends": False},
+    }
+    pep, mhc = "GILGFVFTL", "MKTAYIAKQRQISFVKSHFSRQLEERLGLIEVQ"
+    single = [ChainSpec((Chain(Role.PEPTIDE, pep),), f"s{i}") for i in range(3)]
+    paired = [
+        ChainSpec((Chain(Role.PEPTIDE, pep), Chain(Role.MHC_HEAVY, mhc)), f"p{i}") for i in range(3)
+    ]
+    lone = context_gain(model, tok, single, "PEPTIDE", **kw)
+    for arm in lone["arms"].values():
+        assert arm["context_gain"]["median"] == 0.0
+        assert arm["complex_minus_scrambled"]["median"] == 0.0
+
+    ctx = context_gain(model, tok, paired, "PEPTIDE", **kw)
+    assert ctx["n"] == 3
+    assert ctx["arms"]["false"]["context_gain"]["median"] != 0.0
+    assert ctx["arms"]["false"]["complex_minus_scrambled"]["median"] != 0.0

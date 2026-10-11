@@ -476,3 +476,64 @@ The gate is nonetheless PROCEED, on the admissible evidence alone: MHC_HEAVY at
 
 The report states the verdict together with the subset it rests on. A gate
 passed on inadmissible targets would have been failed by its own criteria.
+
+## 2026-10-10 - Correction: the model does use cross-chain content at the usable sizes
+
+The earlier entry promoting context gain concluded there is no cross-chain
+reasoning for a layout change to corrupt. That was measured only at 35M, where
+the estimator fails its sanity check, and it does not hold where the estimator
+passes.
+
+A scrambled-context control settles it. Each other chain's residues are shuffled,
+preserving length and composition but destroying content. Genuine content use
+requires complex > scrambled, not merely complex > alone.
+
+MHC_HEAVY, median nats:
+
+| Model | Arm | complex - alone | complex - scrambled |
+|---|---|---|---|
+| 35M | on | +0.070 | +0.028 |
+| 35M | off | +0.657 | -0.093 |
+| 150M | on | +0.647 | +0.599 |
+| 150M | off | +0.661 | +0.612 |
+| 650M | on | -0.032 | +0.190 |
+| 650M | off | +0.542 | +0.216 |
+
+At 150M and 650M the content term is clearly positive and stable across both
+token-dropout arms, so it is not the mask-fraction rescaling artifact. The model
+extracts real, content-dependent information from the other chains for the MHC
+span: about 0.6 nats at 150M and 0.2 at 650M.
+
+At 35M the content term is approximately zero and flips sign between arms, which
+is consistent with the estimator there being unusable.
+
+**The headline becomes the stronger claim rather than the weaker one.** Where
+the model demonstrably integrates across chains, a position-index change that
+alters no content disturbs the score more than twenty real substitutions do.
+That is H1 as originally stated, now resting on a condition where there is
+genuine cross-chain computation to disturb.
+
+The `complex - alone` comparison is confounded at 650M, where it reads -0.03
+with dropout on and +0.54 with it off, because the lone chain and the full
+complex have different mask fractions. The scrambled control is the measure to
+cite; `complex - alone` is reported beside it but is not the evidence.
+
+## 2026-10-10 - The MHC confidence intervals are pseudo-replicated and must be recomputed
+
+A 300-example draw contains only 11 distinct MHC heavy-chain sequences. VDJdb is
+dominated by a few common alleles, HLA-A*02:01 above all. The bootstrap
+resamples examples and therefore treats repeated alleles as independent
+observations, which makes every MHC interval far too narrow. The context-gain
+CIs of about +/-0.002 are not credible on 11 underlying sequences.
+
+This applies to the headline. The MHC_HEAVY GSI intervals in the main audit come
+from the same example-level bootstrap over a sample with the same allele
+concentration.
+
+The correct unit of resampling is the distinct MHC allele, not the example. The
+MHC numbers are recomputed with a cluster bootstrap over alleles, and the
+example-level intervals are not reported. Widening is expected and is the
+honest width.
+
+Recorded before seeing the recomputed intervals, so that whatever they come out
+as is what gets published.
