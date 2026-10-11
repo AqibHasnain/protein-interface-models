@@ -365,9 +365,15 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--lr", type=float, default=HPARAMS["lr"])
     ap.add_argument("--threads", type=int, default=8)
     ap.add_argument("--out", type=Path, help="run directory (default runs/<arm>_s<seed>)")
+    ap.add_argument(
+        "--root",
+        type=Path,
+        default=OUT_ROOT,
+        help="results root, so a second model size can be swept without overwriting the first",
+    )
     args = ap.parse_args(argv)
     if args.summarize:
-        print(summarize())
+        print(summarize(args.root))
         return 0
     if args.arm is None:
         ap.error("--arm or --summarize is required")
@@ -379,7 +385,7 @@ def main(argv: list[str] | None = None) -> int:
         "model": args.model,
         "threads": args.threads,
     }
-    out = args.out or OUT_ROOT / "runs" / f"{args.arm}_s{args.seed}"
+    out = args.out or args.root / "runs" / f"{args.arm}_s{args.seed}"
     m = train_run(args.arm, device=args.device, hp=hp, out_dir=out)
     log.info(
         "%s seed %d done in %.0fs: %s", args.arm, args.seed, m["train_wall_clock_s"], m["eval"]

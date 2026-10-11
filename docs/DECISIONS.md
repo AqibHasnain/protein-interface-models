@@ -887,3 +887,19 @@ augmentation, never fits at all: final loss 0.682, 0.691, 0.485. It also has the
 mean and the smallest seed spread. That the augmentation removes a layout shortcut the other arms
 learn is consistent with these numbers and is not established by them, since the delta still spans
 zero. It is not claimed as a finding.
+
+## The 650M infeasibility claim was wrong and is withdrawn
+
+The entry above, "The 650M Phase 2 training arms are out of reach and are not
+attempted", is withdrawn. It was an estimate, never a measurement, and the
+measurement contradicts it.
+
+A 650M LoRA classifier step on MPS at batch 16 takes 2.87 s, measured over 12
+steps. A 300-step arm is therefore about 14 minutes of training plus 5 minutes of
+evaluation, so nine runs (three arms, three seeds) take roughly three hours, not
+weeks. The error came from extrapolating the 35M masked-LM arms on CPU to 650M on
+the GPU backend, two changes at once, without timing either.
+
+The 650M arms are now running. The general lesson is the one this project keeps
+finding: an estimate that decides whether to run an experiment should be
+replaced by a two-minute measurement before it is written into a document.

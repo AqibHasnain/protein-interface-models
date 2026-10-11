@@ -258,10 +258,10 @@ the decision log and are not regenerated from `results/`.
    reference, fixed before the rerun and evaluated blind, is the first item of future work.
 3. **Untrained backbone.** Zero-shot ESM-2 does not discriminate binders. Nothing is shown about a
    fine-tuned interface model, which is the claim that would matter.
-4. **Phase 2 ran at dev-loop scale.** 35M, 300 steps, and no 650M arms; the masked-LM arms are one
-   seed each. H2 is tested on the binding classifier at three seeds per arm (8.7), and the answer is
-   negative, but with every AUROC interval covering 0.5 the test is underpowered as well as
-   negative. A larger backbone, more steps or validated negatives could all change it.
+4. **Phase 2 ran at dev-loop scale.** 300 steps per arm; the masked-LM arms are one seed each. H2
+   is tested on the binding classifier at three seeds per arm (8.7), and the answer is negative, but
+   with every AUROC interval covering 0.5 the test is underpowered as well as negative. A larger
+   backbone, more steps or validated negatives could all change it.
 5. **650M main sample is thin.** n = 250, 9 alleles, effective sample size 1.96, five gaps. The
    balanced run at 51 alleles supersedes it and reverses its gap-100 reading.
 6. **Allele concentration.** Effective sample size 1.92 in the main runs. The balanced runs at 51
